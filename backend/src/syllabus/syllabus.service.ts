@@ -2,11 +2,15 @@ import { Injectable } from '@nestjs/common';
 import { HttpService } from '@nestjs/axios';
 import { AuthService } from '../auth/auth.service';
 import { firstValueFrom } from 'rxjs';
+import { ProcesadorService } from './syllabus.procesador.service';
 
 
 @Injectable()
 export class SyllabusService {
-    constructor(private readonly httpService: HttpService) {}
+    constructor(private readonly httpService: HttpService, 
+      private readonly procesadorService: ProcesadorService,
+      private readonly authService: AuthService
+    ) {}
 
     async getSyllabus(syllabusCode: string, catalogCode: string) {
     const url = `https://losvilos.ucn.cl/hawaii/api/mallas?${syllabusCode}-${catalogCode}`;
@@ -30,9 +34,10 @@ export class SyllabusService {
       }
 
       // Si es exitoso, devolvemos los datos del usuario
+      const ramos = this.procesadorService.procesarMalla(data)
       return {
         success: true,
-        data
+        ramos
       };
 
     } catch (error) {
