@@ -1,10 +1,15 @@
 import { Injectable } from '@nestjs/common';
 import { HttpService } from '@nestjs/axios';
 import { firstValueFrom } from 'rxjs';
+import { SyllabusService } from 'src/syllabus/syllabus.service';
+import { AdvanceService } from 'src/advance/advance.service';
 
 @Injectable()
 export class AuthService {
-  constructor(private readonly httpService: HttpService) {}
+  constructor(private readonly httpService: HttpService,
+    private readonly  syllabusService: SyllabusService,
+    private readonly advanceService: AdvanceService
+  ) {}
 
   /**
    * Valida las credenciales contra el endpoint externo
@@ -24,10 +29,34 @@ export class AuthService {
       }
 
       // Si es exitoso, devolvemos los datos del usuario
+      const root_advance = await this.advanceService.getAdvance(data.rut, data.carreras[0].codigo)
+      const root_syll = await this.syllabusService.getSyllabus(data.carreras[0].codigo, data.carreras[0].catalogo)
+
+      const re_syll = root_syll[0]
+      const syll = root_syll[1]
+
+      const aprobados = root_advance[0]
+      const advance = root_advance[1]
+
+
+      const nombres = aprobados.aprobados.map(r => (syll.find(ra => (ra.codigo == r)))).filter(r => r != null).map(r => r.asignatura)
+      const codigos = aprobados.aprobados.map(r => (syll.find(ra => (ra.codigo == r)))).filter(r => r != null).map(r => r.codigo)
+
+      const pendientes = syll.filter(r => codigos.includes(r.codigo))
+
+
+      //tengo los ramos reprobados y tengo la malla reconstruida, filtrar los ramos que estan reprobados.
+      //Estoy identificando a la perfeccion los ramos pendientes pero no se que hacer con ramos como: formacion general valorica y los ramos de minor, Tendria que hardcodearlo pero esta dificil.
+
+
       return {
         success: true,
         rut: data.rut,
         carreras: data.carreras,
+        avance: advance,
+        aprobados: aprobados,
+        syllabus: syll,
+        pendientes: pendientes,
       };
 
     } catch (error) {

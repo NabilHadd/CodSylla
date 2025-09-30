@@ -19,7 +19,6 @@ export class ProcesadorService {
     }));
 
     return {
-      status: 'ok',
       rut: data.rut,
       carreras,
     };

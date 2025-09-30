@@ -3,13 +3,14 @@ import { HttpService } from '@nestjs/axios';
 import { AuthService } from '../auth/auth.service';
 import { firstValueFrom } from 'rxjs';
 import { ProcesadorService } from './syllabus.procesador.service';
+import { ProcesadorService as AdProcesadorService} from '../advance/advance.procesador.service';
 
 
 @Injectable()
 export class SyllabusService {
     constructor(private readonly httpService: HttpService, 
       private readonly procesadorService: ProcesadorService,
-      private readonly authService: AuthService
+      private readonly adProcesadorService: AdProcesadorService
     ) {}
 
     async getSyllabus(syllabusCode: string, catalogCode: string) {
@@ -35,10 +36,11 @@ export class SyllabusService {
 
       // Si es exitoso, devolvemos los datos del usuario
       const ramos = this.procesadorService.procesarMalla(data)
-      return {
+      
+      return [{
         success: true,
         ramos
-      };
+      }, data];
 
     } catch (error) {
       // Si la API externa falla (timeout, caida, etc.)

@@ -1,13 +1,18 @@
-import { Module } from '@nestjs/common';
+import { Module, forwardRef } from '@nestjs/common';
 import { HttpModule } from '@nestjs/axios';
 import { SyllabusService } from './syllabus.service';
 import { SyllabusController } from './syllabus.controller';
-import { AuthModule } from 'src/auth/auth.module';
-import { ProcesadorModule } from './syllabus.procesador.module';
+import {ProcesadorModule } from './syllabus.procesador.module';
+import { ProcesadorModule as AdProcesadorModule } from '../advance/advance.procesador.module';
 
 @Module({
-  imports: [HttpModule, AuthModule, ProcesadorModule],
+  imports: [
+    HttpModule,
+    ProcesadorModule,
+    AdProcesadorModule
+  ],
   controllers: [SyllabusController],
   providers: [SyllabusService],
+  exports: [SyllabusService]
 })
 export class SyllabusModule {}

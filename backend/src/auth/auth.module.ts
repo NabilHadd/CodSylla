@@ -1,11 +1,18 @@
-import { Module } from '@nestjs/common';
+import { Module} from '@nestjs/common';
 import { HttpModule } from '@nestjs/axios';
 import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
 import { ProcesadorModule } from './auth.procesador.module';
+import { SyllabusModule } from '../syllabus/syllabus.module';
+import { AdvanceModule } from '../advance/advance.module';
 
 @Module({
-  imports: [HttpModule, ProcesadorModule],
+  imports: [
+    HttpModule,
+    ProcesadorModule,
+    SyllabusModule,  // ⬅️ forwardRef aquí también
+    AdvanceModule
+  ],
   controllers: [AuthController],
   providers: [AuthService],
   exports: [AuthService]
