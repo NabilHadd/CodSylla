@@ -3,12 +3,14 @@ import { HttpService } from '@nestjs/axios';
 import { firstValueFrom } from 'rxjs';
 import { SyllabusService } from 'src/syllabus/syllabus.service';
 import { AdvanceService } from 'src/advance/advance.service';
+import { UsersService } from 'src/users/users.service';
 
 @Injectable()
 export class AuthService {
   constructor(private readonly httpService: HttpService,
     private readonly  syllabusService: SyllabusService,
-    private readonly advanceService: AdvanceService
+    private readonly advanceService: AdvanceService,
+    private readonly usersService: UsersService
   ) {}
 
   /**
@@ -26,6 +28,15 @@ export class AuthService {
       // Si la respuesta tiene "error", devolvemos null
       if (data.error) {
         return { success: false, message: data.error };
+      }
+
+      const user = await this.usersService.findOne(data.rut)
+
+      if(user){
+        console.log("existe el usuario")
+      }else{
+        console.log("no existe el usuario")
+        this.usersService.create({rut: data.rut, email: "default" , rol: "alumno"})
       }
 
       // Si es exitoso, devolvemos los datos del usuario

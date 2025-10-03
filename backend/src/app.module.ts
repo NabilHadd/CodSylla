@@ -1,12 +1,15 @@
 import { Module } from '@nestjs/common';
+import { ConfigModule } from '@nestjs/config';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { AuthModule } from './auth/auth.module';
 import { SyllabusModule } from './syllabus/syllabus.module';
 import { AdvanceModule } from './advance/advance.module';
+import { UsersModule } from './users/users.module';
+import { SupabaseModule } from './supabase/supabase.module';
 
 @Module({
-  imports: [AuthModule, SyllabusModule, AdvanceModule],
+  imports: [ConfigModule.forRoot({ isGlobal: true }),AuthModule, SyllabusModule, AdvanceModule, UsersModule, SupabaseModule],
   controllers: [AppController],
   providers: [AppService],
 })

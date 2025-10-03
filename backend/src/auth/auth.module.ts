@@ -5,13 +5,15 @@ import { AuthService } from './auth.service';
 import { ProcesadorModule } from './auth.procesador.module';
 import { SyllabusModule } from '../syllabus/syllabus.module';
 import { AdvanceModule } from '../advance/advance.module';
+import { UsersModule } from 'src/users/users.module';
 
 @Module({
   imports: [
     HttpModule,
     ProcesadorModule,
-    SyllabusModule,  // ⬅️ forwardRef aquí también
-    AdvanceModule
+    SyllabusModule, 
+    AdvanceModule,
+    UsersModule
   ],
   controllers: [AuthController],
   providers: [AuthService],
