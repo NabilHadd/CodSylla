@@ -36,8 +36,15 @@ export class AuthService {
         console.log("existe el usuario")
       }else{
         console.log("no existe el usuario")
-        this.usersService.create({rut: data.rut, email: "default" , rol: "alumno"})
+        this.usersService.create({user:{rut: data.rut, email: "default" , rol: "alumno"}, carrera: {codigo: data.carreras[0].codigo, catalogo: data.carreras[0].catalogo, nombre: data.carreras[0].nombre}})
       }
+
+
+      //TODO ESTE CODIGO DEBE SER TRANSFERIDO......
+      //Y REPENSADO HAY QUE TENER COMO OBJETIVO RELLENAR LA BASE DE DATOS MAS QUE NADA.
+
+      //---------------------------------------
+
 
       // Si es exitoso, devolvemos los datos del usuario
       const root_advance = await this.advanceService.getAdvance(data.rut, data.carreras[0].codigo)

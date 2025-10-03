@@ -21,7 +21,7 @@ export class UsersController {
   }
 
   @Post()
-  create(@Body() body: { rut: string; email: string; rol: string }) {
+  create(@Body() body: { user: { rut: string; email: string; rol: string;}; carrera: {codigo: string; catalogo: string; nombre: string;} }) {
     return this.usersService.create(body);
   }
 
