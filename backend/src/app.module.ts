@@ -6,10 +6,14 @@ import { AuthModule } from './auth/auth.module';
 import { SyllabusModule } from './syllabus/syllabus.module';
 import { AdvanceModule } from './advance/advance.module';
 import { UsersModule } from './users/users.module';
-import { SupabaseModule } from './supabase/supabase.module';
 
 @Module({
-  imports: [ConfigModule.forRoot({ isGlobal: true }),AuthModule, SyllabusModule, AdvanceModule, UsersModule, SupabaseModule],
+  imports: [
+    ConfigModule.forRoot({ isGlobal: true }),
+    AuthModule,
+    SyllabusModule,
+    AdvanceModule,
+    UsersModule],
   controllers: [AppController],
   providers: [AppService],
 })
