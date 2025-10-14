@@ -1,0 +1,92 @@
+import React, { useState } from "react";
+import axios from "axios";
+import logo from "../assets/codsylla.png";
+import { useNavigate } from "react-router-dom";
+
+function Login() {
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [mensaje, setMensaje] = useState("");
+  const navigate = useNavigate();
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    try {
+      const res = await axios.post("http://localhost:3001/auth/login", {
+        email,
+        password,
+      });
+      setMensaje("✅ Login exitoso! Token: " + res.data.token);
+
+      navigate("/Home");
+    } catch (err) {
+      setMensaje("❌ Error: " + (err.response?.data?.message || err.message));
+    }
+  };
+
+  return (
+    <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-blue-500 to-blue-700">
+      <div className="w-full max-w-md p-8 bg-white rounded-3xl shadow-xl">
+        {/* Logo */}
+       <div className="flex justify-center w-full">
+         <img src={logo} alt="Logo" className="w-60 h-36 rounded-full" />
+       </div>
+
+        {/* Título */}
+        <h2 className="text-3xl font-bold text-center text-gray-800 mb-6">
+          Inicia sesión
+        </h2>
+
+        {/* Formulario */}
+        <form onSubmit={handleSubmit} className="space-y-5">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Email
+            </label>
+            <input
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+              className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:outline-none"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Contraseña
+            </label>
+            <input
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+              className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:outline-none"
+            />
+          </div>
+
+          <button
+            type="submit"
+            className="w-full py-3 bg-white border-2 border-blue-700 text-blue-700 font-bold rounded-xl hover:bg-blue-100 transition-colors duration-300"
+          >
+            Iniciar sesión
+          </button>
+        </form>
+
+        {/* Mensaje */}
+        {mensaje && (
+          <p
+            className={`mt-5 text-center font-medium ${
+              mensaje.startsWith("✅") ? "text-green-600" : "text-red-600"
+            }`}
+          >
+            {mensaje}
+          </p>
+        )}
+      </div>
+    </div>
+  );
+}
+
+export default Login;
