@@ -4,7 +4,6 @@ import { Injectable } from '@nestjs/common';
 @Injectable()
 export class ProcesadorService {
   procesarUsuario(data: any) {
-    console.log('Datos recibidos:', data);
 
     if (data.error) {
       console.log('Error detectado:', data.error);
