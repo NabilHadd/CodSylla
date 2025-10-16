@@ -26,12 +26,26 @@ function Login() {
   };
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-blue-500 to-blue-700">
-      <div className="w-full max-w-md p-8 bg-white rounded-3xl shadow-xl">
+    <div className="bg-gradient-to-br from-blue-500 via-blue-600 to-blue-800 min-h-screen flex flex-col items-center justify-center relative overflow-hidden">
+      {/* Efecto decorativo de fondo */}
+      <div className="absolute w-72 h-72 bg-blue-400/30 rounded-full blur-3xl top-10 left-20 animate-pulse"></div>
+      <div className="absolute w-96 h-96 bg-blue-300/20 rounded-full blur-3xl bottom-10 right-20 animate-pulse"></div>
+
+      {/* Título principal */}
+      <h1 className="text-white text-5xl font-extrabold text-center mb-10 drop-shadow-[0_4px_6px_rgba(0,0,0,0.3)]">
+        <span className="text-blue-100">Cod</span>
+        <span className="text-white">Sylla</span>
+        <p className="text-xl font-light text-blue-200 mt-2">
+          Planificación de avance curricular
+        </p>
+      </h1>
+
+      {/* Contenedor principal */}
+      <div className="w-full max-w-md p-8 bg-white/95 backdrop-blur-sm rounded-3xl shadow-2xl">
         {/* Logo */}
-       <div className="flex justify-center w-full">
-         <img src={logo} alt="Logo" className="w-60 h-36 rounded-full" />
-       </div>
+        <div className="flex justify-center w-full mb-4">
+          <img src={logo} alt="Logo" className="w-52 h-32 rounded-full shadow-md" />
+        </div>
 
         {/* Título */}
         <h2 className="text-3xl font-bold text-center text-gray-800 mb-6">
@@ -68,7 +82,7 @@ function Login() {
 
           <button
             type="submit"
-            className="w-full py-3 bg-white border-2 border-blue-700 text-blue-700 font-bold rounded-xl hover:bg-blue-100 transition-colors duration-300"
+            className="w-full py-3 bg-gradient-to-r from-blue-100 to-blue-200 border-2 border-blue-700 text-blue-700 font-bold rounded-xl hover:from-blue-200 hover:to-blue-300 hover:shadow-lg transition-all duration-300"
           >
             Iniciar sesión
           </button>
@@ -87,6 +101,7 @@ function Login() {
       </div>
     </div>
   );
+
 }
 
 export default Login;

@@ -17,23 +17,22 @@ export class UsersService {
     return data;
   }
 
-    async findOne(rut: string) {
-        const { data, error } = await this.supabaseService.client
-            .from('usuario')
-            .select('*')
-            .eq('rut', rut)
-            .single();
+  async findOne(rut: string) {
+      const { data, error } = await this.supabaseService.client
+          .from('usuario')
+          .select('*')
+          .eq('rut', rut)
+          .single();
 
-        if (error) {
-            if (error.code === 'PGRST116') { // no se encontró
-            return null;
-            }
-            throw new Error(error.message); // otros errores
-        }
+      if (error) {
+          if (error.code === 'PGRST116') { // no se encontró
+          return null;
+          }
+          throw new Error(error.message); // otros errores
+      }
 
-        return data;
-    }
-
+      return data;
+  }
 async create(body: { 
   user: { rut: string; email: string; rol: string; }; 
   carrera: { codigo: string; catalogo: string; nombre: string; } 
@@ -121,6 +120,20 @@ async create(body: {
     //En este for se hace algo un poco "malo" estamos ignorando todos esos codigos raros de prerequisitos (preguntar al profe sobre esos codigos)
     //preguntar al profe sobre ramos genericos como "formacion valorica" o los ramos de minor, pq esos dependen de cada alumno y la malla es generica, no especifica.
     for (let i = 0; i < ramos.length; i++) {
+
+      const ramo_syllabus = {
+        codigo_ramo: ramos[i].codigo,
+        codigo_syll: carrera.codigo,
+        catalogo: carrera.catalogo
+      }
+
+      const { data: newRamoSyll, error: ramoSyllError } = await this.supabaseService.client
+        .from('ramos_syllabus')
+        .insert(ramo_syllabus)
+        .select();
+      
+      if (ramoSyllError) throw new Error(ramoSyllError.message);
+
       const prereq = (ramos[i].prereq || '').split(',').filter(p => p.trim() !== '');
       
       for (let j = 0; j < prereq.length; j++) {
@@ -133,7 +146,7 @@ async create(body: {
           .eq('codigo', codigoPreramo)
           .maybeSingle();
 
-        if (checkError) {
+        if (checkError) { 
           console.error(`Error verificando prerrequisito ${codigoPreramo}:`, checkError);
           continue; // saltar este preramo
         }
