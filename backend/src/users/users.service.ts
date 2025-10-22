@@ -176,29 +176,29 @@ async create(body: {
 
 
     //para agregar el historial:
-for (let i = 0; i < avance.length; i++) {
-  const historial = {
-    rut_alumno: user.rut,
-    codigo_ramo: avance[i].course,
-    sem_cursado: avance[i].period,
-    estado: avance[i].status
-  };
+    for (let i = 0; i < avance.length; i++) {
+      const historial = {
+        rut_alumno: user.rut,
+        codigo_ramo: avance[i].course,
+        sem_cursado: avance[i].period,
+        estado: avance[i].status
+      };
 
-  const { data: newRamoSyll, error: ramoSyllError } = await this.supabaseService.client
-    .from('historial_academico')
-    .insert(historial)
-    .select();
+      const { data: newRamoSyll, error: ramoSyllError } = await this.supabaseService.client
+        .from('historial_academico')
+        .insert(historial)
+        .select();
 
-  if (ramoSyllError) {
-    // Buscar nombre del ramo en el array ramos
-    const ramoEncontrado = ramos.find(r => r.codigo === avance[i].course);
-    const nombreRamo = ramoEncontrado ? ramoEncontrado.asignatura : avance[i].course;
+      if (ramoSyllError) {
+        // Buscar nombre del ramo en el array ramos
+        const ramoEncontrado = ramos.find(r => r.codigo === avance[i].course);
+        const nombreRamo = ramoEncontrado ? ramoEncontrado.asignatura : avance[i].course;
 
-    console.error(`Error insertando el ramo ${nombreRamo}: ${ramoSyllError.message}`);
-    continue; // seguimos con los demás ramos
-  }
-}
-          
+        console.error(`Error insertando el ramo ${nombreRamo}: ${ramoSyllError.message}`);
+        continue; // seguimos con los demás ramos
+      }
+    }
+              
     
 
     carreraData = newCarrera;

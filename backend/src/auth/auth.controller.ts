@@ -19,7 +19,9 @@ export class AuthController {
 
   const data = await this.authService.validateUser(email, password);
 
-  const resultado = this.procesadorService.procesarUsuario(data);
+
+  //no se esta usando, era un ejemplo de procesador de datos basicamente un script aparte.
+  //const resultado = this.procesadorService.procesarUsuario(data);
 
   return data;
 }

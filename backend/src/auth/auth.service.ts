@@ -10,7 +10,7 @@ export class AuthService {
   constructor(private readonly httpService: HttpService,
     private readonly  syllabusService: SyllabusService,
     private readonly advanceService: AdvanceService,
-    private readonly usersService: UsersService
+    private readonly usersService: UsersService,
   ) {}
 
   /**
@@ -18,6 +18,7 @@ export class AuthService {
    */
   async validateUser(email: string, password: string) {
     const url = `https://puclaro.ucn.cl/eross/avance/login.php?email=${email}&password=${password}`;
+    let admin = false
 
     try {
       // Hacemos la petición GET usando axios integrado con NestJS
@@ -33,7 +34,9 @@ export class AuthService {
       const user = await this.usersService.findOne(data.rut)
 
       if(user){
-        console.log("existe el usuario")
+        console.log("existe el usuario");
+        (user.rol == "alumno") ? admin = false : admin = true
+
       }else{
         console.log("no existe el usuario")
         this.usersService.create({user:{rut: data.rut, email: "default" , rol: "alumno"}, carrera: {codigo: data.carreras[0].codigo, catalogo: data.carreras[0].catalogo, nombre: data.carreras[0].nombre}})
@@ -47,20 +50,22 @@ export class AuthService {
 
 
       // Si es exitoso, devolvemos los datos del usuario
-      const root_advance = await this.advanceService.getAdvance(data.rut, data.carreras[0].codigo)
-      const root_syll = await this.syllabusService.getSyllabus(data.carreras[0].codigo, data.carreras[0].catalogo)
+      //const root_advance = await this.advanceService.getAdvance(data.rut, data.carreras[0].codigo)
+      //const root_syll = await this.syllabusService.getSyllabus(data.carreras[0].codigo, data.carreras[0].catalogo)
 
-      const re_syll = root_syll[0]
-      const syll = root_syll[1]
+      //const re_syll = root_syll[0]
+      //const syll = root_syll[1]
 
-      const aprobados = root_advance[0]
-      const advance = root_advance[1]
+      //const aprobados = root_advance[0]
+      //const advance = root_advance[1]
 
+      //nombres de los aprobados
+      //const nombres = aprobados.aprobados.map(r => (syll.find(ra => (ra.codigo == r)))).filter(r => r != null).map(r => r.asignatura)
+      //codigo de los aprobados
+      //const codigos = aprobados.aprobados.map(r => (syll.find(ra => (ra.codigo == r)))).filter(r => r != null).map(r => r.codigo)
 
-      const nombres = aprobados.aprobados.map(r => (syll.find(ra => (ra.codigo == r)))).filter(r => r != null).map(r => r.asignatura)
-      const codigos = aprobados.aprobados.map(r => (syll.find(ra => (ra.codigo == r)))).filter(r => r != null).map(r => r.codigo)
-
-      const pendientes = syll.filter(r => codigos.includes(r.codigo))
+      //codigos de los pendientes
+      //const pendientes = syll.filter(r => codigos.includes(r.codigo))
 
 
       //tengo los ramos reprobados y tengo la malla reconstruida, filtrar los ramos que estan reprobados.
@@ -69,12 +74,13 @@ export class AuthService {
 
       return {
         success: true,
-        rut: data.rut,
-        carreras: data.carreras,
-        avance: advance,
-        aprobados: aprobados,
-        syllabus: syll,
-        pendientes: pendientes,
+        admin: admin
+        //rut: data.rut,
+        //carreras: data.carreras,
+        //avance: advance,
+        //aprobados: aprobados,
+        //syllabus: syll,
+        //pendientes: pendientes,
       };
 
     } catch (error) {

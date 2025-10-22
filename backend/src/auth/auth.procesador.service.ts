@@ -11,15 +11,14 @@ export class ProcesadorService {
     }
 
     // Ejemplo de procesamiento
-    const carreras = data.carreras.map(c => ({
-      codigo: c.codigo,
-      nombre: c.nombre.toUpperCase(), // transforma el nombre
-      catalogo: c.catalogo,
-    }));
+    //const carreras = data.carreras.map(c => ({
+    //  codigo: c.codigo,
+    //  nombre: c.nombre.toUpperCase(), // transforma el nombre
+    //  catalogo: c.catalogo,
+    //}));
 
     return {
       rut: data.rut,
-      carreras,
     };
   }
 }

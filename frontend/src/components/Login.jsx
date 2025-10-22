@@ -17,9 +17,18 @@ function Login() {
         email,
         password,
       });
-      setMensaje("✅ Login exitoso! Token: " + res.data.token);
 
-      navigate("/Home");
+      setMensaje("✅ Login exitoso!");
+
+      const { success, admin } = res.data;
+
+      if (success) {
+        if (admin) {
+          navigate("/AdminHome");
+        } else {
+          navigate("/home");
+        }
+      }
     } catch (err) {
       setMensaje("❌ Error: " + (err.response?.data?.message || err.message));
     }
