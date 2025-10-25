@@ -33,15 +33,21 @@ export class AuthService {
 
       const user = await this.usersService.findOne(data.rut)
 
-      if(user){
+      if(user) {
+        console.log(user)
         console.log("existe el usuario");
-        (user.rol == "alumno") ? admin = false : admin = true
-
-      }else{
-        console.log("no existe el usuario")
-        this.usersService.create({user:{rut: data.rut, email: "default" , rol: "alumno"}, carrera: {codigo: data.carreras[0].codigo, catalogo: data.carreras[0].catalogo, nombre: data.carreras[0].nombre}})
+        admin = (user.rol !== "alumno");
+      } else {
+        console.log("no existe el usuario");
+        await this.usersService.create({
+          user: { rut: data.rut, email: "default", rol: "alumno" },
+          carrera: {
+            codigo: data.carreras[0].codigo,
+            catalogo: data.carreras[0].catalogo,
+            nombre: data.carreras[0].nombre
+          }
+        });
       }
-
 
       //TODO ESTE CODIGO DEBE SER TRANSFERIDO......
       //Y REPENSADO HAY QUE TENER COMO OBJETIVO RELLENAR LA BASE DE DATOS MAS QUE NADA.

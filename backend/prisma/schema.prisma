@@ -1,0 +1,118 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model alumno_carrera {
+  rut_alumno     String  @db.VarChar(12)
+  codigo_carrera String  @db.VarChar(10)
+  catalogo       String  @db.VarChar(10)
+  carrera        carrera @relation(fields: [codigo_carrera, catalogo], references: [codigo, catalogo], onDelete: NoAction, onUpdate: NoAction)
+  usuario        usuario @relation(fields: [rut_alumno], references: [rut], onDelete: NoAction, onUpdate: NoAction)
+
+  @@id([rut_alumno, codigo_carrera, catalogo])
+}
+
+model audit_log {
+  fecha       DateTime @db.Timestamp(6)
+  rut_usuario String   @db.VarChar(12)
+  accion      String?  @db.VarChar(100)
+  usuario     usuario  @relation(fields: [rut_usuario], references: [rut], onDelete: NoAction, onUpdate: NoAction)
+
+  @@id([rut_usuario, fecha])
+}
+
+model carrera {
+  codigo         String           @db.VarChar(10)
+  catalogo       String           @db.VarChar(10)
+  nombre         String?          @db.VarChar(100)
+  alumno_carrera alumno_carrera[]
+  ramos_syllabus ramos_syllabus[]
+  syllabus       syllabus?
+
+  @@id([codigo, catalogo])
+}
+
+model historial_academico {
+  rut_alumno  String   @db.VarChar(12)
+  codigo_ramo String   @db.VarChar(10)
+  sem_cursado String   @db.VarChar(10)
+  estado      String   @db.VarChar(20)
+  nota        Decimal? @db.Decimal(4, 2)
+  ramo        ramo     @relation(fields: [codigo_ramo], references: [codigo], onDelete: NoAction, onUpdate: NoAction)
+  usuario     usuario  @relation(fields: [rut_alumno], references: [rut], onDelete: NoAction, onUpdate: NoAction)
+  semestre    semestre @relation(fields: [sem_cursado], references: [id_semestre], onDelete: NoAction, onUpdate: NoAction)
+
+  @@id([rut_alumno, codigo_ramo, sem_cursado])
+}
+
+model planificacion {
+  rut_alumno  String   @db.VarChar(12)
+  fecha       DateTime @db.Timestamp(6)
+  nombre_plan String?  @db.VarChar(100)
+  sem_plan    String   @db.VarChar(10)
+  ranking     Int
+  semestre    semestre @relation(fields: [sem_plan], references: [id_semestre], onDelete: NoAction, onUpdate: NoAction, map: "fk_planificacion_semestre")
+  usuario     usuario  @relation(fields: [rut_alumno], references: [rut], onDelete: NoAction, onUpdate: NoAction)
+
+  @@id([rut_alumno, fecha])
+}
+
+model prerequisitos {
+  codigo_ramo                             String @db.VarChar(10)
+  codigo_preramo                          String @db.VarChar(10)
+  ramo_prerequisitos_codigo_preramoToramo ramo   @relation("prerequisitos_codigo_preramoToramo", fields: [codigo_preramo], references: [codigo], onDelete: NoAction, onUpdate: NoAction)
+  ramo_prerequisitos_codigo_ramoToramo    ramo   @relation("prerequisitos_codigo_ramoToramo", fields: [codigo_ramo], references: [codigo], onDelete: NoAction, onUpdate: NoAction)
+
+  @@id([codigo_ramo, codigo_preramo])
+}
+
+model ramo {
+  codigo                                           String                @id @db.VarChar(10)
+  nombre                                           String                @db.VarChar(100)
+  creditos                                         Int
+  nivel                                            String?               @db.VarChar(10)
+  historial_academico                              historial_academico[]
+  prerequisitos_prerequisitos_codigo_preramoToramo prerequisitos[]       @relation("prerequisitos_codigo_preramoToramo")
+  prerequisitos_prerequisitos_codigo_ramoToramo    prerequisitos[]       @relation("prerequisitos_codigo_ramoToramo")
+  ramos_syllabus                                   ramos_syllabus[]
+}
+
+model ramos_syllabus {
+  codigo_ramo String  @db.VarChar(10)
+  codigo_syll String  @db.VarChar(10)
+  catalogo    String  @db.VarChar(10)
+  ramo        ramo    @relation(fields: [codigo_ramo], references: [codigo], onDelete: NoAction, onUpdate: NoAction)
+  carrera     carrera @relation(fields: [codigo_syll, catalogo], references: [codigo, catalogo], onDelete: NoAction, onUpdate: NoAction)
+
+  @@id([codigo_ramo, codigo_syll, catalogo])
+}
+
+model semestre {
+  id_semestre         String                @id @db.VarChar(10)
+  tipo_sem            String                @db.VarChar(20)
+  historial_academico historial_academico[]
+  planificacion       planificacion[]
+}
+
+model syllabus {
+  codigo   String  @db.VarChar(10)
+  catalogo String  @db.VarChar(10)
+  carrera  carrera @relation(fields: [codigo, catalogo], references: [codigo, catalogo], onDelete: NoAction, onUpdate: NoAction)
+
+  @@id([codigo, catalogo])
+}
+
+model usuario {
+  rut                 String                @id @db.VarChar(12)
+  email               String                @db.VarChar(100)
+  rol                 String                @db.VarChar(50)
+  alumno_carrera      alumno_carrera[]
+  audit_log           audit_log[]
+  historial_academico historial_academico[]
+  planificacion       planificacion[]
+}
