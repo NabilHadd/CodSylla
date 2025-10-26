@@ -7,6 +7,8 @@ import { SyllabusModule } from '../syllabus/syllabus.module';
 import { AdvanceModule } from '../advance/advance.module';
 import { UsersModule } from 'src/users/users.module';
 import { AdminModule } from 'src/admin/admin.module';
+import { JwtModule } from '@nestjs/jwt';
+import { PlanificationModule } from 'src/planification/planification.module';
 
 @Module({
   imports: [
@@ -15,7 +17,12 @@ import { AdminModule } from 'src/admin/admin.module';
     SyllabusModule, 
     AdvanceModule,
     UsersModule,
-    AdminModule
+    AdminModule,
+    PlanificationModule,
+    JwtModule.register({
+      secret: process.env.JWT_SECRET, // aquí pones tu clave secreta
+      signOptions: { expiresIn: '1h' },
+    }),
   ],
   controllers: [AuthController],
   providers: [AuthService],

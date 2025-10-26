@@ -4,11 +4,13 @@ import { PlanificationController } from './planification.controller';
 import { AdvanceModule } from 'src/advance/advance.module';
 import { SyllabusModule } from 'src/syllabus/syllabus.module';
 import { PrismaService } from 'src/prisma/prisma.service';
+import { JwtModule } from '@nestjs/jwt';
 
 @Module({
   imports: [
     AdvanceModule,
-    SyllabusModule
+    SyllabusModule,
+    JwtModule
   ],
   controllers: [PlanificationController],
   providers: [
@@ -17,7 +19,7 @@ import { PrismaService } from 'src/prisma/prisma.service';
 
   ],
   exports: [
-    PrismaService
+    PlanificationService
   ]
 })
 export class PlanificationModule {}

@@ -58,9 +58,26 @@ model planificacion {
   ranking     Int
   semestre    semestre @relation(fields: [sem_plan], references: [id_semestre], onDelete: NoAction, onUpdate: NoAction, map: "fk_planificacion_semestre")
   usuario     usuario  @relation(fields: [rut_alumno], references: [rut], onDelete: NoAction, onUpdate: NoAction)
+  ramos       planificacion_ramo[] // relación uno-a-muchos con planificacion_ramo
 
   @@id([rut_alumno, fecha])
 }
+
+model planificacion_ramo {
+  rut_alumno   String   @db.VarChar(12)
+  fecha_plan   DateTime @db.Timestamp(6)
+  codigo_ramo  String   @db.VarChar(10)
+  sem_asignado String   @db.VarChar(10)
+  estado       String?  @db.VarChar(20)
+
+  planificacion planificacion @relation(fields: [rut_alumno, fecha_plan], references: [rut_alumno, fecha], onDelete: Cascade)
+
+  ramo     ramo     @relation("planificacion_ramo_ramo", fields: [codigo_ramo], references: [codigo])
+  semestre semestre @relation("planificacion_ramo_semestre", fields: [sem_asignado], references: [id_semestre])
+
+  @@id([rut_alumno, fecha_plan, codigo_ramo, sem_asignado])
+}
+
 
 model prerequisitos {
   codigo_ramo                             String @db.VarChar(10)
@@ -80,7 +97,10 @@ model ramo {
   prerequisitos_prerequisitos_codigo_preramoToramo prerequisitos[]       @relation("prerequisitos_codigo_preramoToramo")
   prerequisitos_prerequisitos_codigo_ramoToramo    prerequisitos[]       @relation("prerequisitos_codigo_ramoToramo")
   ramos_syllabus                                   ramos_syllabus[]
+
+  planificacion_ramos planificacion_ramo[] @relation("planificacion_ramo_ramo")
 }
+
 
 model ramos_syllabus {
   codigo_ramo String  @db.VarChar(10)
@@ -92,11 +112,14 @@ model ramos_syllabus {
   @@id([codigo_ramo, codigo_syll, catalogo])
 }
 
+
 model semestre {
   id_semestre         String                @id @db.VarChar(10)
   tipo_sem            String                @db.VarChar(20)
   historial_academico historial_academico[]
   planificacion       planificacion[]
+
+  planificacion_ramos planificacion_ramo[] @relation("planificacion_ramo_semestre")
 }
 
 model syllabus {

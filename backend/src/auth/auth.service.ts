@@ -6,6 +6,7 @@ import { AdvanceService } from 'src/advance/advance.service';
 import { UsersService } from 'src/users/users.service';
 import { AdminService } from 'src/admin/admin.service';
 import { JwtService } from '@nestjs/jwt';
+import { PlanificationService } from 'src/planification/planification.service';
 
 @Injectable()
 export class AuthService {
@@ -14,7 +15,8 @@ export class AuthService {
     private readonly advanceService: AdvanceService,
     private readonly usersService: UsersService,
     private readonly adminService: AdminService,
-    private readonly jwtService: JwtService
+    private readonly jwtService: JwtService,
+    private readonly planService: PlanificationService
   ) {}
 
   /**
@@ -45,7 +47,12 @@ export class AuthService {
           accion: 'Usuario logeado'
         })
       } else {
+        //Si el usuario no existe se debe crear el usuario y luego generar inmediatamente la 
+        //planificación curricular provisional, por lo que se llama a generarPlanificacion
+
         console.log("no existe el usuario");
+
+
         await this.usersService.create({
           user: { rut: data.rut, email: "default", rol: "alumno" },
           carrera: {
@@ -54,16 +61,28 @@ export class AuthService {
             nombre: data.carreras[0].nombre
           }
         });
-          this.adminService.updateAuditLog({
+
+        //se actualiza el auditlog.
+        this.adminService.updateAuditLog({
             rut: data.rut,
             accion: 'Usuario registrado'
-          })
-        
+        })
+
+        //se genera la planificacion provisional
+        this.planService.generarPlanificacion({
+          rut: data.rut,
+          carrera: {
+            codigo: data.carreras[0].codigo,
+            catalogo: data.carreras[0].catalogo,
+            nombre: data.carreras[0].nombre
+          },
+        });
+        //luego hay que pensar la logica para el tema de los ranking
       }
 
       const payload = {
-        rut: data.rut,
-        rol: admin ? 'admin' : 'alumno'
+          rut: data.rut,
+          carreras: data.carreras
       };
 
       const token = this.jwtService.sign(payload)
