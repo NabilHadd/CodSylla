@@ -18,7 +18,7 @@ model alumno_carrera {
 }
 
 model audit_log {
-  fecha       DateTime @db.Timestamp(6)
+  fecha DateTime @default(now()) @db.Timestamp(6)
   rut_usuario String   @db.VarChar(12)
   accion      String?  @db.VarChar(100)
   usuario     usuario  @relation(fields: [rut_usuario], references: [rut], onDelete: NoAction, onUpdate: NoAction)

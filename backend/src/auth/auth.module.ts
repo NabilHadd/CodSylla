@@ -6,6 +6,7 @@ import { ProcesadorModule } from './auth.procesador.module';
 import { SyllabusModule } from '../syllabus/syllabus.module';
 import { AdvanceModule } from '../advance/advance.module';
 import { UsersModule } from 'src/users/users.module';
+import { AdminModule } from 'src/admin/admin.module';
 
 @Module({
   imports: [
@@ -13,7 +14,8 @@ import { UsersModule } from 'src/users/users.module';
     ProcesadorModule,
     SyllabusModule, 
     AdvanceModule,
-    UsersModule
+    UsersModule,
+    AdminModule
   ],
   controllers: [AuthController],
   providers: [AuthService],

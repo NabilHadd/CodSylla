@@ -29,12 +29,14 @@ export class AdvanceService {
     
           const aprobados = this.procesadorService.ramosPendientes(data)
 
+          const data_no_excluded = data.filter(r => r.excluded === false)
+
 
           // Si es exitoso, devolvemos los datos del usuario
           return [{
             success: true,
             aprobados: aprobados
-          }, data];
+          }, data_no_excluded];
     
         } catch (error) {
           // Si la API externa falla (timeout, caida, etc.)

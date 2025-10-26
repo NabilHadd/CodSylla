@@ -40,18 +40,33 @@ export class UsersService {
 
 
   async create(body: { 
-    user: { rut: string; email: string; rol: string; }; 
-    carrera: { codigo: string; catalogo: string; nombre: string; } 
-  }) {
+                  user: { rut: string; email: string; rol: string; }; 
+                  carrera: { codigo: string; catalogo: string; nombre: string; } 
+              }) 
+    {
+
+
+
     const { user, carrera } = body;
 
+    const root_advance = await this.advanceService.getAdvance(user.rut, carrera.codigo);
+    const root_syll = await this.syllabusService.getSyllabus(carrera.codigo, carrera.catalogo);
+
+    const ramos = root_syll[1];
+    const avance = root_advance[1];
+
+
     if (user.rol !== 'alumno') return null; // solo alumnos
+
+
 
     const alumnoCarreraData = {
       rut_alumno: user.rut,
       codigo_carrera: carrera.codigo,
       catalogo: carrera.catalogo,
     };
+
+
 
     // --- Insertar usuario ---
     let userData;
@@ -63,6 +78,8 @@ export class UsersService {
       throw new Error(`Error insertando usuario: ${error.message}`);
     }
 
+    console.log('se agrego a la tabla usuario')
+
     // --- Comprobar existencia de la carrera ---
     let existingCarrera = await this.prisma.carrera.findUnique({
       where: {
@@ -73,14 +90,11 @@ export class UsersService {
       },
     });
 
+
+
     let carreraData;
     if (!existingCarrera) {
       // Obtener ramos y avance desde servicios externos
-      const root_advance = await this.advanceService.getAdvance(user.rut, carrera.codigo);
-      const root_syll = await this.syllabusService.getSyllabus(carrera.codigo, carrera.catalogo);
-
-      const ramos = root_syll[1];
-      const avance = root_advance[1];
 
       // Insertar carrera
       try {
@@ -90,6 +104,9 @@ export class UsersService {
       } catch (error) {
         throw new Error(`Error insertando carrera: ${error.message}`);
       }
+
+      console.log('se agrego a la tabla carrera')
+
 
       // Insertar ramos y prerrequisitos
       for (let i = 0; i < ramos.length; i++) {
@@ -108,20 +125,26 @@ export class UsersService {
           update: {},
           create: ramoData,
         });
-      } catch(error){
-        throw new Error(error.message);
+        } catch(error){
+          throw new Error(error.message);
         
-      }
+        }
 
 
         // Insertar ramos_syllabus
-        await this.prisma.ramos_syllabus.create({
-          data: {
-            codigo_ramo: ramos[i].codigo,
-            codigo_syll: carrera.codigo,
-            catalogo: carrera.catalogo,
-          },
-        });
+        try{
+          await this.prisma.ramos_syllabus.create({
+            data: {
+              codigo_ramo: ramos[i].codigo,
+              codigo_syll: carrera.codigo,
+              catalogo: carrera.catalogo,
+            },
+          });
+        } catch(error){
+          throw new Error(error.message)
+        }
+
+
 
 
         // Insertar prerrequisitos
@@ -132,21 +155,35 @@ export class UsersService {
           const exists = await this.prisma.ramo.findUnique({ where: { codigo: codigoPreramo } });
           if (!exists) continue; // ignorar si no existe
 
-          await this.prisma.prerequisitos.upsert({
-            where: {
-              codigo_ramo_codigo_preramo: {
+          
+          try {
+            await this.prisma.prerequisitos.upsert({
+              where: {
+                codigo_ramo_codigo_preramo: {
+                  codigo_ramo: ramos[i].codigo,
+                  codigo_preramo: codigoPreramo,
+                },
+              },
+              update: {},
+              create: {
                 codigo_ramo: ramos[i].codigo,
                 codigo_preramo: codigoPreramo,
               },
-            },
-            update: {},
-            create: {
-              codigo_ramo: ramos[i].codigo,
-              codigo_preramo: codigoPreramo,
-            },
-          });
+            });
+          } catch (error) {
+             throw new Error(error.message)
+          }
+
         }
       }
+
+      console.log('ramos')
+
+    } else {
+      carreraData = existingCarrera;
+    }
+
+
 
       // Insertar historial académico
       // Insertar historial académico
@@ -169,10 +206,9 @@ export class UsersService {
         continue; // sigue con el siguiente historial
       }
     }
-    } else {
-      carreraData = existingCarrera;
-    }
 
+    console.log('historial')
+    
     // Insertar alumno_carrera
     const alumnoCarrera = await this.prisma.alumno_carrera.create({ data: alumnoCarreraData });
 

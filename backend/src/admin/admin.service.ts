@@ -43,4 +43,21 @@ export class AdminService {
       );
     }
   }
+
+  async updateAuditLog(body: { 
+    rut: string,
+    accion: string
+  }) {
+    try {
+      await this.prisma.audit_log.create({
+        data: {
+          rut_usuario: body.rut,
+          accion: body.accion,
+          fecha: new Date(),
+        },
+      });
+    } catch (error) {
+      throw new Error(`Error insertando log: ${error.message}`);
+    }
+  }
 }

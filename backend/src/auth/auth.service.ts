@@ -4,6 +4,7 @@ import { firstValueFrom } from 'rxjs';
 import { SyllabusService } from 'src/syllabus/syllabus.service';
 import { AdvanceService } from 'src/advance/advance.service';
 import { UsersService } from 'src/users/users.service';
+import { AdminService } from 'src/admin/admin.service';
 
 @Injectable()
 export class AuthService {
@@ -11,6 +12,7 @@ export class AuthService {
     private readonly  syllabusService: SyllabusService,
     private readonly advanceService: AdvanceService,
     private readonly usersService: UsersService,
+    private readonly adminService: AdminService
   ) {}
 
   /**
@@ -34,9 +36,13 @@ export class AuthService {
       const user = await this.usersService.findOne(data.rut)
 
       if(user) {
-        console.log(user)
         console.log("existe el usuario");
         admin = (user.rol !== "alumno");
+        
+        this.adminService.updateAuditLog({
+          rut: data.rut,
+          accion: 'Usuario logeado'
+        })
       } else {
         console.log("no existe el usuario");
         await this.usersService.create({
@@ -47,7 +53,13 @@ export class AuthService {
             nombre: data.carreras[0].nombre
           }
         });
+          this.adminService.updateAuditLog({
+            rut: data.rut,
+            accion: 'Usuario registrado'
+          })
+        
       }
+
 
       //TODO ESTE CODIGO DEBE SER TRANSFERIDO......
       //Y REPENSADO HAY QUE TENER COMO OBJETIVO RELLENAR LA BASE DE DATOS MAS QUE NADA.
