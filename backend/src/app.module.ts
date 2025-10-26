@@ -8,6 +8,7 @@ import { AdvanceModule } from './advance/advance.module';
 import { UsersModule } from './users/users.module';
 import { PrismaService } from './prisma/prisma.service';
 import { AdminModule } from './admin/admin.module';
+import { PlanificationModule } from './planification/planification.module';
 
 @Module({
   imports: [
@@ -17,6 +18,7 @@ import { AdminModule } from './admin/admin.module';
     AdvanceModule,
     UsersModule,
     AdminModule,
+    PlanificationModule,
   ],
   controllers: [AppController],
   providers: [AppService, PrismaService],

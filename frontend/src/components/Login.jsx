@@ -20,18 +20,21 @@ function Login() {
 
       setMensaje("✅ Login exitoso!");
 
-      const { success, admin } = res.data;
+      const { success, admin, token } = res.data;
 
-      if (success) {
-        if (admin) {
-          navigate("/AdminHome");
-        } else {
-          navigate("/home");
-        }
+      if(!success){
+        setMensaje("❌ Error: " + (res.data.message || "Login fallido"));
+        return;
       }
+
+      localStorage.setItem('token', token)
+
+      admin ? navigate('/AdminHome') : navigate('/home')
+
     } catch (err) {
       setMensaje("❌ Error: " + (err.response?.data?.message || err.message));
     }
+    
   };
 
   return (

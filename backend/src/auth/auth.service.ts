@@ -5,6 +5,7 @@ import { SyllabusService } from 'src/syllabus/syllabus.service';
 import { AdvanceService } from 'src/advance/advance.service';
 import { UsersService } from 'src/users/users.service';
 import { AdminService } from 'src/admin/admin.service';
+import { JwtService } from '@nestjs/jwt';
 
 @Injectable()
 export class AuthService {
@@ -12,13 +13,15 @@ export class AuthService {
     private readonly  syllabusService: SyllabusService,
     private readonly advanceService: AdvanceService,
     private readonly usersService: UsersService,
-    private readonly adminService: AdminService
+    private readonly adminService: AdminService,
+    private readonly jwtService: JwtService
   ) {}
 
   /**
    * Valida las credenciales contra el endpoint externo
    */
   async validateUser(email: string, password: string) {
+
     const url = `https://puclaro.ucn.cl/eross/avance/login.php?email=${email}&password=${password}`;
     let admin = false
 
@@ -29,9 +32,7 @@ export class AuthService {
       const data = response.data;
 
       // Si la respuesta tiene "error", devolvemos null
-      if (data.error) {
-        return { success: false, message: data.error };
-      }
+      if (data.error) {return { success: false, message: data.error };}
 
       const user = await this.usersService.findOne(data.rut)
 
@@ -59,6 +60,13 @@ export class AuthService {
           })
         
       }
+
+      const payload = {
+        rut: data.rut,
+        rol: admin ? 'admin' : 'alumno'
+      };
+
+      const token = this.jwtService.sign(payload)
 
 
       //TODO ESTE CODIGO DEBE SER TRANSFERIDO......
@@ -92,7 +100,8 @@ export class AuthService {
 
       return {
         success: true,
-        admin: admin
+        admin: admin,
+        token,
         //rut: data.rut,
         //carreras: data.carreras,
         //avance: advance,
