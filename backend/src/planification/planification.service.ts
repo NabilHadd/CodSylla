@@ -38,8 +38,8 @@ export class PlanificationService {
           .map(h => Number(h.sem_cursado))
           .filter(s => ![15, 25].includes(Number(String(s).slice(-2))));
         
-        let minSemestre = semestresNormales.length > 0 ? Math.max(...semestresNormales) : 0;
-        let maxSemestre = semestresNormales.length > 0 ? Math.min(...semestresNormales) : 0;
+        let maxSemestre = semestresNormales.length > 0 ? Math.max(...semestresNormales) : 0;
+        let minSemestre = semestresNormales.length > 0 ? Math.min(...semestresNormales) : 0;
 
         const aux = historial.map(x => x.sem_cursado);
         const semestres_historial = [...new Set(aux)]
@@ -118,12 +118,69 @@ export class PlanificationService {
         await this.createPlan(rut, 'provisional', String(semestre), 1, fecha_creacion)
         await this.agregarRamosPlanificacion(rut, fecha_creacion, plan)
 
+        console.log(plan)
+
         // 7️⃣ retorno final
         return {
           plan,
           totalSemestres: plan.length,
         };
 
+      }
+
+      //el home del alumno por defecto siempre va a consultar el ranking n°1
+      //el cual siempre estara lleno debido a que apenas se ingresa a la pagina se agrega la provisional
+      //al ranking n°1
+      async getPlanificacion(body, ranking){
+
+        const {rut, carrera} = body
+
+        //se consulta por el plan
+        const plan = await this.prisma.planificacion.findFirst({
+          where: {
+            rut_alumno: rut,
+            ranking: ranking          
+          },
+        });
+
+        if(!plan) throw new Error("Planificación no encontrada");
+
+        //se utiliza la llave del plan para acceder a los ramos
+        const ramos_plan = await this.prisma.planificacion_ramo.findMany({
+          where: {
+            rut_alumno: rut,
+            fecha_plan: plan.fecha
+          },
+        })
+
+        const ramos = await Promise.all(
+          ramos_plan.map(async (r) => {
+            const ramo = await this.prisma.ramo.findUnique({
+              where: { codigo: r.codigo_ramo },
+            });
+
+            return {
+              nombre: ramo?.nombre || '',
+              estado: r.estado,
+              sem_asignado: r.sem_asignado,
+            };
+          })
+        );
+
+        //se extraen los semestres
+        const aux = ramos.map(x => x.sem_asignado);
+        const semestres = [...new Set(aux)]
+          .sort((a, b) => Number(a) - Number(b));
+
+        //se ordenan los ramos por semestre
+        const ramos_por_semestre = semestres
+          .map(z => ({ 
+            sem: z,
+            ramos: ramos.filter(x => x.sem_asignado == z)
+          }))
+            
+        return ramos_por_semestre
+        
       }
 
       //despues de cada semestre construido se agrega a aprobados los ramos que se incluyeron en el semesre.
@@ -274,5 +331,6 @@ export class PlanificationService {
           });
         }
       }
+
 
 }

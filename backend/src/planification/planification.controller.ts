@@ -1,4 +1,4 @@
-import { Controller, Get, Req, UseGuards } from '@nestjs/common';
+import { Controller, Get, Param, UseGuards, Req } from '@nestjs/common';
 import { PlanificationService } from './planification.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 
@@ -6,19 +6,33 @@ import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 export class PlanificationController {
   constructor(private readonly planificationService: PlanificationService) {}
 
-  //luego desde el frontend se genera una pasandole el rut desde localstorage
   @UseGuards(JwtAuthGuard)
   @Get('generar')
   generar(@Req() req) {
     const body = {
-      rut: req.rut,
+      rut: req.user.rut,
       carrera: {
-            codigo: req.carreras[0].codigo,
-            catalogo: req.carreras[0].catalogo,
-            nombre: req.carreras[0].nombre
+        codigo: req.user.carreras[0].codigo,
+        catalogo: req.user.carreras[0].catalogo,
+        nombre: req.user.carreras[0].nombre,
       },
-      //debe consumirse el nombre desde el formulario, asi como muchas otras variables.
-    } // obtenido desde el JWT
+    };
     return this.planificationService.generarPlanificacion(body);
+  }
+
+  // Nuevo endpoint para obtener una planificación según su ranking
+  //@UseGuards(JwtAuthGuard)
+  @Get('obtener/:rank')
+  //async obtenerPorRanking(@Req() req, @Param('rank') rank: number) {
+  async obtenerPorRanking(@Param('rank') rank: number) {
+    const body = {
+      rut: '333333333',
+      carrera: {
+        codigo: '8266',
+        catalogo: '202410',
+        nombre: '',
+      },
+    }; 
+    return this.planificationService.getPlanificacion(body, Number(rank));
   }
 }
