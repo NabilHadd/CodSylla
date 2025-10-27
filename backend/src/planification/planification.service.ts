@@ -194,6 +194,8 @@ export class PlanificationService {
           );
       }
 
+
+
         //se esta obviando que los inscritos se aprobaron solo para la planificación provisional.
       async getRamosAprobados(rutAlumno: string) {
         return this.prisma.historial_academico.findMany({
@@ -205,6 +207,10 @@ export class PlanificationService {
           },
         });
       }
+
+
+
+      
 
       //trae devuelta TODOS los ramos del historial.
       async getHistorial(rutAlumno: string){
@@ -224,6 +230,8 @@ export class PlanificationService {
           },
         });
       }
+
+
 
       //no se usa
       //trae de vuelta los preramos de un ramo

@@ -9,6 +9,8 @@ import { UsersModule } from 'src/users/users.module';
 import { AdminModule } from 'src/admin/admin.module';
 import { JwtModule } from '@nestjs/jwt';
 import { PlanificationModule } from 'src/planification/planification.module';
+import { JwtStrategy } from './jwt.strategy';
+import { PassportModule } from '@nestjs/passport';
 
 @Module({
   imports: [
@@ -19,13 +21,14 @@ import { PlanificationModule } from 'src/planification/planification.module';
     UsersModule,
     AdminModule,
     PlanificationModule,
+    PassportModule,
     JwtModule.register({
       secret: process.env.JWT_SECRET, // aquí pones tu clave secreta
-      signOptions: { expiresIn: '1h' },
+      signOptions: { expiresIn: '1d' },
     }),
   ],
   controllers: [AuthController],
-  providers: [AuthService],
-  exports: [AuthService]
+  providers: [AuthService, JwtStrategy],
+  exports: [AuthService, PassportModule]
 })
 export class AuthModule {}

@@ -21,18 +21,21 @@ export class PlanificationController {
   }
 
   // Nuevo endpoint para obtener una planificación según su ranking
-  //@UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard)
   @Get('obtener/:rank')
-  //async obtenerPorRanking(@Req() req, @Param('rank') rank: number) {
-  async obtenerPorRanking(@Param('rank') rank: number) {
+  async obtenerPorRanking(@Req() req, @Param('rank') rank: number) {
+    const userRut = req.user.rut;
+    const carrera = req.user.carreras[0]; // primera carrera del array
+
     const body = {
-      rut: '333333333',
+      rut: userRut,
       carrera: {
-        codigo: '8266',
-        catalogo: '202410',
-        nombre: '',
+        codigo: carrera.codigo,
+        catalogo: carrera.catalogo,
+        nombre: carrera.nombre,
       },
-    }; 
+    };
+
     return this.planificationService.getPlanificacion(body, Number(rank));
   }
 }
