@@ -20,14 +20,20 @@ function Login() {
 
       setMensaje("✅ Login exitoso!");
 
-      const { success, admin, token } = res.data;
+      const { success, admin, token, rol } = res.data;
 
       if(!success){
         setMensaje("❌ Error: " + (res.data.message || "Login fallido"));
         return;
       }
 
-      localStorage.setItem('token', token)
+      localStorage.setItem('token', token);
+      localStorage.setItem('isAdmin', admin ? 'true' : 'false');
+      if (rol) {
+        localStorage.setItem('rol', rol);
+      } else {
+        localStorage.removeItem('rol');
+      }
 
       admin ? navigate('/AdminHome') : navigate('/home')
 

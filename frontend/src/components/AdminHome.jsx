@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState, useCallback } from "react";
 import axios from "axios";
-import { useNavigate, Navigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 
 function AdminHome() {
   const [auditLog, setAuditLog] = useState([]);
@@ -8,17 +8,27 @@ function AdminHome() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [menuOpen, setMenuOpen] = useState(false);
+  const [reloadKey, setReloadKey] = useState(0);
+  const [accessDenied, setAccessDenied] = useState(false);
 
   const navigate = useNavigate();
 
-  // Lee el token (no retornamos aún; los hooks deben definirse primero)
+  // Lee el token y rol almacenado
   const token = localStorage.getItem("token");
+  const isAdmin = useMemo(
+    () => localStorage.getItem("isAdmin") === "true",
+    []
+  );
 
   // Tu función, en useCallback para deps del efecto
   const handleLogout = useCallback(() => {
     localStorage.removeItem("token"); // <- EXACTO como pediste
     sessionStorage.removeItem("token"); // por si acaso
-    delete axios.defaults.headers.common.Authorization;
+    localStorage.removeItem("isAdmin");
+    localStorage.removeItem("rol");
+    if (axios?.defaults?.headers?.common) {
+      delete axios.defaults.headers.common.Authorization;
+    }
     navigate("/", { replace: true });
     // Fallback duro por si algo cachea
     setTimeout(() => {
@@ -29,56 +39,103 @@ function AdminHome() {
   }, [navigate]);
 
   useEffect(() => {
-    let isMounted = true;
+    if (!token) {
+      setLoading(false);
+      return;
+    }
+
+    if (!isAdmin) {
+      setAccessDenied(true);
+      setLoading(false);
+      return;
+    }
+
+    let didCancel = false;
+    const controller = new AbortController();
 
     const fetchData = async () => {
       try {
+        setAccessDenied(false);
+        const authHeaders = { Authorization: `Bearer ${token}` };
         const [auditRes, ramosRes] = await Promise.all([
           axios.get("http://localhost:3001/admin/audit-log", {
-            headers: token ? { Authorization: `Bearer ${token}` } : {},
+            headers: authHeaders,
+            signal: controller.signal,
           }),
           axios.get("http://localhost:3001/admin/ramos", {
-            headers: token ? { Authorization: `Bearer ${token}` } : {},
+            headers: authHeaders,
+            signal: controller.signal,
           }),
         ]);
-        if (isMounted) {
+
+        if (!didCancel) {
           setAuditLog(auditRes.data);
           setRamos(ramosRes.data);
         }
       } catch (err) {
-        if (isMounted) {
-          if (err?.response?.status === 401) {
-            // Si el backend responde no autorizado, salimos
-            handleLogout();
-            return;
-          }
-          setError(
-            err?.response?.data?.message ||
-              err?.message ||
-              "No se pudieron cargar los datos del administrador"
-          );
+        const isCanceled =
+          typeof err === "object" &&
+          err !== null &&
+          ("code" in err
+            ? err.code === "ERR_CANCELED"
+            : err?.name === "CanceledError");
+
+        if (isCanceled) return;
+
+        const status =
+          typeof err === "object" && err !== null
+            ? err?.response?.status
+            : undefined;
+
+        if (!didCancel && status === 401) {
+          didCancel = true;
+          handleLogout();
+          return;
+        }
+
+        if (!didCancel && status === 403) {
+          setAccessDenied(true);
+          setError("No tienes permisos para acceder al panel de administración.");
+          return;
+        }
+
+        if (!didCancel) {
+          const fallbackMessage =
+            (typeof err === "object" && err !== null && err?.response?.data?.message) ||
+            (err instanceof Error ? err.message : "") ||
+            "No se pudieron cargar los datos del administrador";
+          setError(fallbackMessage);
         }
       } finally {
-        if (isMounted) setLoading(false);
+        if (!didCancel) {
+          setLoading(false);
+        }
       }
     };
 
-    // Si no hay token, no llamamos al backend (pero NO retornamos aquí)
-    if (token) {
-      // Opcional: setea Authorization global
-      axios.defaults.headers.common.Authorization = `Bearer ${token}`;
-      fetchData().catch((e) =>
-        console.error("Fallo inesperado al cargar datos admin", e)
+    fetchData().catch((unexpectedError) => {
+      if (didCancel) return;
+      console.error("Fallo inesperado al cargar datos admin", unexpectedError);
+      setError(
+        unexpectedError instanceof Error
+          ? unexpectedError.message
+          : "Ocurrió un error inesperado al cargar el panel"
       );
-    } else {
-      // Sin token, marcamos loading=false para que renderice el Navigate del return
       setLoading(false);
-    }
+    });
 
     return () => {
-      isMounted = false;
+      didCancel = true;
+      controller.abort();
     };
-  }, [token, handleLogout]);
+  }, [token, handleLogout, reloadKey, isAdmin]);
+
+  const refetch = useCallback(() => {
+    setAccessDenied(false);
+    setError("");
+    setLoading(true);
+    setReloadKey((prev) => prev + 1);
+  }, []);
 
   const auditLogRows = useMemo(
     () =>
@@ -105,12 +162,91 @@ function AdminHome() {
 
   // A PARTIR DE AQUÍ no rompemos la regla de hooks: el return es único,
   // y dentro decidimos si redirigimos o mostramos el panel.
+  if (!token) {
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-slate-50 px-6">
+        <div className="max-w-md w-full bg-white rounded-2xl shadow-xl border border-slate-200 p-8 text-center space-y-6">
+          <div className="text-5xl">🔒</div>
+          <h1 className="text-2xl font-semibold text-slate-900">
+            Acceso restringido
+          </h1>
+          <p className="text-slate-600">
+            No podemos mostrar esta sección porque no has iniciado sesión. Vuelve
+            al inicio e ingresa con tus credenciales para continuar.
+          </p>
+          <button
+            onClick={() => navigate("/", { replace: true })}
+            className="inline-flex items-center justify-center w-full bg-blue-600 hover:bg-blue-700 text-white font-medium px-4 py-2 rounded-lg shadow transition-colors"
+          >
+            Ir al inicio
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  if (accessDenied) {
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-slate-50 px-6">
+        <div className="max-w-md w-full bg-white rounded-2xl shadow-xl border border-slate-200 p-8 text-center space-y-6">
+          <div className="text-5xl">🚫</div>
+          <h1 className="text-2xl font-semibold text-slate-900">
+            Acceso solo para administradores
+          </h1>
+          <p className="text-slate-600">
+            Esta página está reservada para el equipo administrador. Si necesitas
+            revisar tu avance académico, vuelve a la vista principal.
+          </p>
+          <div className="grid gap-3 sm:grid-cols-2">
+            <button
+              onClick={() => navigate("/home", { replace: true })}
+              className="inline-flex items-center justify-center w-full bg-blue-600 hover:bg-blue-700 text-white font-medium px-4 py-2 rounded-lg shadow transition-colors"
+            >
+              Ir a mi planificación
+            </button>
+            <button
+              onClick={handleLogout}
+              className="inline-flex items-center justify-center w-full bg-slate-200 hover:bg-slate-300 text-slate-700 font-medium px-4 py-2 rounded-lg border border-slate-300 transition-colors"
+            >
+              Cerrar sesión
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-slate-50 px-6">
+        <div className="max-w-md w-full bg-white rounded-2xl shadow-xl border border-slate-200 p-8 text-center space-y-6">
+          <h1 className="text-2xl font-semibold text-slate-900">
+            No pudimos cargar el panel
+          </h1>
+          <p className="text-slate-600">
+            {error}
+          </p>
+          <div className="grid gap-3 sm:grid-cols-2">
+            <button
+              onClick={refetch}
+              className="inline-flex items-center justify-center w-full bg-blue-600 hover:bg-blue-700 text-white font-medium px-4 py-2 rounded-lg shadow transition-colors"
+            >
+              Reintentar
+            </button>
+            <button
+              onClick={handleLogout}
+              className="inline-flex items-center justify-center w-full bg-slate-200 hover:bg-slate-300 text-slate-700 font-medium px-4 py-2 rounded-lg border border-slate-300 transition-colors"
+            >
+              Volver al inicio
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <>
-      {!token ? (
-        <Navigate to="/" replace />
-      ) : (
-        <div className="flex min-h-screen bg-white relative">
+    <div className="flex min-h-screen bg-white relative">
           {/* Botón hamburguesa (abre menú) */}
           <button
             aria-label="Abrir menú"
@@ -279,8 +415,6 @@ function AdminHome() {
             </div>
           </div>
         </div>
-      )}
-    </>
   );
 }
 

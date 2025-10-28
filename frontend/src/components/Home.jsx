@@ -68,6 +68,8 @@ function Home() {
 
   const handleLogout = () => {
     localStorage.removeItem("token");
+    localStorage.removeItem("isAdmin");
+    localStorage.removeItem("rol");
     navigate('/')
   };
 
@@ -79,8 +81,22 @@ function Home() {
     );
   if (error)
     return (
-      <div className="flex items-center justify-center min-h-screen text-red-500 bg-white">
-        {error}
+      <div className="flex items-center justify-center min-h-screen bg-slate-50 px-6">
+        <div className="max-w-md w-full bg-white rounded-2xl shadow-xl border border-slate-200 p-8 text-center space-y-6">
+          <div className="text-5xl">🚫</div>
+          <h1 className="text-2xl font-semibold text-slate-900">
+            Acceso restringido
+          </h1>
+          <p className="text-slate-600">
+            No podemos mostrar esta sección en este momento. {error}
+          </p>
+          <button
+            onClick={handleLogout}
+            className="inline-flex items-center justify-center w-full bg-blue-600 hover:bg-blue-700 text-white font-medium px-4 py-2 rounded-lg shadow transition-colors"
+          >
+            Volver a iniciar sesión
+          </button>
+        </div>
       </div>
     );
 

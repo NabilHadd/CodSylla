@@ -26,6 +26,7 @@ export class AuthService {
 
     const url = `https://puclaro.ucn.cl/eross/avance/login.php?email=${email}&password=${password}`;
     let admin = false
+    let userRole = 'alumno';
 
     try {
       // Hacemos la petición GET usando axios integrado con NestJS
@@ -40,7 +41,8 @@ export class AuthService {
 
       if(user) {
         console.log("existe el usuario");
-        admin = (user.rol !== "alumno");
+        userRole = user.rol ?? 'alumno';
+        admin = (userRole !== "alumno");
         
         this.adminService.updateAuditLog({
           rut: data.rut,
@@ -82,7 +84,9 @@ export class AuthService {
 
       const payload = {
           rut: data.rut,
-          carreras: data.carreras
+          carreras: data.carreras,
+          rol: userRole,
+          isAdmin: admin
       };
 
       const token = this.jwtService.sign(payload)
@@ -120,6 +124,7 @@ export class AuthService {
       return {
         success: true,
         admin: admin,
+        rol: userRole,
         token,
         //rut: data.rut,
         //carreras: data.carreras,
