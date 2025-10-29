@@ -1,30 +1,63 @@
-import React, { useState } from "react";
-import { Button, Label, TextInput, Card } from "flowbite-react";
+import React, { useState, useEffect } from "react";
+import { Button, Label, TextInput, Card, Spinner, Alert } from "flowbite-react";
 
 function MainForm() {
-  const initialCourses = [
-    { code: "MAT101", name: "Matemáticas I" },
-    { code: "PHY101", name: "Física I" },
-    { code: "CS101", name: "Programación I" },
-    { code: "ENG101", name: "Inglés I" },
-    { code: "HIS101", name: "Historia" },
-  ];
-
   const [nombrePlan, setNombrePlan] = useState("");
-  const [maxCredits, setMaxCredits] = useState(32);
-  const [courses, setCourses] = useState(initialCourses);
+  const [ramos, setRamos] = useState([]);
   const [priority, setPriority] = useState([]);
   const [postponed, setPostponed] = useState([]);
+  const [maxCredits, setMaxCredits] = useState(32);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+
+    fetch("http://localhost:3001/get-all/ramos", {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+    })
+      .then((res) => {
+        if (!res.ok) throw new Error("Error al obtener los ramos");
+        return res.json();
+      })
+      .then((data) => {
+        setRamos(data);
+        setLoading(false);
+      })
+      .catch((err) => {
+        setError(err.message);
+        setLoading(false);
+      });
+  }, []);
 
   const moveCourse = (course, from, to) => {
-    if (from === "courses") setCourses(courses.filter(c => c.code !== course.code));
-    if (from === "priority") setPriority(priority.filter(c => c.code !== course.code));
-    if (from === "postponed") setPostponed(postponed.filter(c => c.code !== course.code));
+    if (from === "ramos") setRamos(ramos.filter((c) => c.codigo !== course.codigo));
+    if (from === "priority") setPriority(priority.filter((c) => c.codigo !== course.codigo));
+    if (from === "postponed") setPostponed(postponed.filter((c) => c.codigo !== course.codigo));
 
-    if (to === "courses") setCourses([...courses, course]);
+    if (to === "ramos") setRamos([...ramos, course]);
     if (to === "priority") setPriority([...priority, course]);
     if (to === "postponed") setPostponed([...postponed, course]);
   };
+
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center h-screen">
+        <Spinner size="xl" />
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="max-w-md mx-auto mt-10">
+        <Alert color="failure">{error}</Alert>
+      </div>
+    );
+  }
 
   return (
     <div className="p-6 max-w-6xl mx-auto space-y-6">
@@ -37,7 +70,7 @@ function MainForm() {
           id="planName"
           type="text"
           value={nombrePlan}
-          onChange={e => setNombrePlan(e.target.value)}
+          onChange={(e) => setNombrePlan(e.target.value)}
           placeholder="Ej: Plan Semestre 1"
         />
       </div>
@@ -49,23 +82,23 @@ function MainForm() {
           id="credits"
           type="number"
           value={maxCredits}
-          onChange={e => setMaxCredits(Number(e.target.value))}
+          onChange={(e) => setMaxCredits(Number(e.target.value))}
         />
       </div>
 
       <div className="grid md:grid-cols-3 gap-6">
-        {/* Cursos disponibles */}
+        {/* Ramos disponibles */}
         <Card>
-          <h2 className="text-xl font-semibold mb-4">Cursos disponibles</h2>
+          <h2 className="text-xl font-semibold mb-4">Ramos disponibles</h2>
           <ul className="space-y-2">
-            {courses.map(c => (
-              <li key={c.code} className="flex justify-between items-center">
-                <span>{c.name}</span>
+            {ramos.map((r) => (
+              <li key={r.codigo} className="flex justify-between items-center">
+                <span>{r.nombre}</span>
                 <div className="flex space-x-2">
-                  <Button size="xs" onClick={() => moveCourse(c, "courses", "priority")}>
+                  <Button size="xs" color="gray" onClick={() => moveCourse(r, "ramos", "priority")}>
                     Priorizar
                   </Button>
-                  <Button size="xs" color="gray" onClick={() => moveCourse(c, "courses", "postponed")}>
+                  <Button size="xs" color="gray" onClick={() => moveCourse(r, "ramos", "postponed")}>
                     Postergar
                   </Button>
                 </div>
@@ -78,10 +111,10 @@ function MainForm() {
         <Card>
           <h2 className="text-xl font-semibold mb-4">Prioridad</h2>
           <ul className="space-y-2">
-            {priority.map(c => (
-              <li key={c.code} className="flex justify-between items-center">
-                <span>{c.name}</span>
-                <Button size="xs" color="red" onClick={() => moveCourse(c, "priority", "courses")}>
+            {priority.map((r) => (
+              <li key={r.codigo} className="flex justify-between items-center">
+                <span>{r.nombre}</span>
+                <Button size="xs" color="purple" onClick={() => moveCourse(r, "priority", "ramos")}>
                   Volver
                 </Button>
               </li>
@@ -93,10 +126,10 @@ function MainForm() {
         <Card>
           <h2 className="text-xl font-semibold mb-4">Postergados</h2>
           <ul className="space-y-2">
-            {postponed.map(c => (
-              <li key={c.code} className="flex justify-between items-center">
-                <span>{c.name}</span>
-                <Button size="xs" color="red" onClick={() => moveCourse(c, "postponed", "courses")}>
+            {postponed.map((r) => (
+              <li key={r.codigo} className="flex justify-between items-center">
+                <span>{r.nombre}</span>
+                <Button size="xs" color="red" onClick={() => moveCourse(r, "postponed", "ramos")}>
                   Volver
                 </Button>
               </li>
@@ -106,7 +139,7 @@ function MainForm() {
       </div>
 
       <div className="text-center">
-        <Button gradientDuoTone="purpleToPink" onClick={() => alert("Volviendo a Home")}>
+        <Button color="purple" onClick={() => alert("Volviendo a Home")}>
           Volver
         </Button>
       </div>

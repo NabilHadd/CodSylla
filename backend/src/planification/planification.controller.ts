@@ -4,7 +4,8 @@ import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 
 @Controller('planification')
 export class PlanificationController {
-  constructor(private readonly planificationService: PlanificationService) {}
+  constructor(private readonly planificationService: PlanificationService
+  ) {}
 
   @UseGuards(JwtAuthGuard)
   @Get('generar')
@@ -38,4 +39,6 @@ export class PlanificationController {
 
     return this.planificationService.getPlanificacion(body, Number(rank));
   }
+
 }
+
