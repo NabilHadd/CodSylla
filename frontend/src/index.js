@@ -2,8 +2,10 @@ import React from "react";
 import ReactDOM from "react-dom/client";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Login from "./components/Login";
-import Home from "./components/Home"; // nueva página
+import Home from "./components/Home";
 import AdminHome from "./components/AdminHome";
+import MainForm from "./components/MainForm";
+import "flowbite";
 
 import "./index.css";
 
@@ -14,6 +16,7 @@ root.render(
       <Route path="/" element={<Login />} />
       <Route path="/home" element={<Home />} />
       <Route path="/AdminHome" element={<AdminHome />} />
+      <Route path="/MainForm" element={<MainForm />} />
     </Routes>
   </BrowserRouter>
 );
