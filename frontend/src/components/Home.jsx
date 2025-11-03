@@ -1,5 +1,7 @@
-import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import React, { useEffect, useState } from "react";
+import { Button,Spinner} from "flowbite-react";
+
 
 function Home() {
   const [planificacion, setPlanificacion] = useState([]);
@@ -7,7 +9,7 @@ function Home() {
   const [error, setError] = useState(null);
   const [openSemestres, setOpenSemestres] = useState({});
   const [menuOpen, setMenuOpen] = useState(false);
-    const navigate = useNavigate();
+  const navigate = useNavigate();
 
   useEffect(() => {
     const token = localStorage.getItem("token");
@@ -56,13 +58,13 @@ function Home() {
   const getRamoColor = (estado) => {
     switch ((estado || "").toLowerCase()) {
       case "aprobado":
-        return "bg-green-200 text-green-900";
+        return "bg-green-200 text-green-900 border border-green-400";
       case "reprobado":
-        return "bg-red-200 text-red-900";
+        return "bg-red-200 text-red-900 border border-red-400";
       case "pendiente":
-        return "bg-blue-200 text-blue-900";
+        return "bg-blue-200 text-blue-900 border border-blue-400";
       default:
-        return "bg-gray-200 text-gray-900";
+        return "bg-gray-200 text-gray-900 border border-gray-400";
     }
   };
 
@@ -70,15 +72,18 @@ function Home() {
     localStorage.removeItem("token");
     localStorage.removeItem("isAdmin");
     localStorage.removeItem("rol");
-    navigate('/')
+    navigate('/');
   };
 
-  if (loading)
+  if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen text-blue-800 bg-white">
-        Cargando...
+      <div className="flex justify-center items-center h-screen">
+        <Spinner size="xl" />
       </div>
     );
+  }
+
+
   if (error)
     return (
       <div className="flex items-center justify-center min-h-screen bg-slate-50 px-6">
@@ -92,7 +97,7 @@ function Home() {
           </p>
           <button
             onClick={handleLogout}
-            className="inline-flex items-center justify-center w-full bg-blue-600 hover:bg-blue-700 text-white font-medium px-4 py-2 rounded-lg shadow transition-colors"
+            className="inline-flex items-center justify-center w-full bg-blue-600 hover:bg-blue-700 text-white font-medium px-4 py-2 rounded-xl shadow transition-colors"
           >
             Volver a iniciar sesión
           </button>
@@ -101,78 +106,106 @@ function Home() {
     );
 
   return (
-    <div className="flex min-h-screen bg-white relative">
-      {/* Overlay */}
+    <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white text-slate-800">
+      {/* Header */}
+      <header className="flex items-center justify-between px-4 py-3 bg-white shadow-md sticky top-0 z-30">
+        <div className="flex items-center gap-3">
+          <button
+            aria-label="menu"
+            onClick={() => setMenuOpen(true)}
+            className="p-2 rounded-lg hover:bg-blue-100 transition"
+          >
+            {/* Hamburger */}
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16" />
+            </svg>
+          </button>
+
+          <h1 className="text-xl font-semibold text-blue-700">Planificacion Curricular Optimizada</h1>
+        </div>
+
+        <div className="hidden md:flex items-center gap-4">
+        </div>
+      </header>
+
+      {/* Sidebar overlay */}
       {menuOpen && (
-        <div
-          className="fixed inset-0 bg-black bg-opacity-40 z-40"
-          onClick={() => setMenuOpen(false)}
-        ></div>
+        <div className="fixed inset-0 z-40">
+          <div className="absolute inset-0 bg-black/30" onClick={() => setMenuOpen(false)} />
+          <aside className="absolute left-0 top-0 bottom-0 w-72 bg-white shadow-2xl p-6 flex flex-col">
+            <div>
+              <h2 className="text-lg font-bold text-blue-700 mb-4">Menú</h2>
+              <p className="text-sm text-slate-500 mb-6">Opciones rápidas</p>
+            </div>
+
+            <div className="flex flex-col gap-3">
+              <Button color="blue" onClick={() => navigate('/MainForm')}>
+                Generar Planificación
+              </Button>
+
+              <Button color="purple">
+                Simular Ramos
+              </Button>
+
+              <Button color="yellow">
+                Ranking
+              </Button>
+              
+              <Button color="light" onClick={() => setMenuOpen(false)}>
+                Cerrar
+              </Button>
+            </div>
+
+            {/* Botón de logout abajo */}
+            <Button color="red" onClick={() => handleLogout()} className="mt-auto">
+              Cerrar Sesión
+            </Button>
+          </aside>
+        </div>
       )}
 
-      {/* Menu lateral */}
-      <div
-        className={`fixed top-0 left-0 h-full w-64 bg-blue-800 text-white shadow-lg transform transition-transform z-50
-          ${menuOpen ? "translate-x-0" : "-translate-x-full"}`}
-      >
-        <div className="flex flex-col pt-16 p-6 space-y-6">
-          <h2 className="text-2xl font-bold">Menú</h2>
-          <button
-            onClick={handleLogout}
-            className="bg-red-500 hover:bg-red-600 px-4 py-2 rounded shadow"
-          >
-            Cerrar sesión
-          </button>
-        </div>
-      </div>
 
-      {/* Contenido principal */}
-      <div className="flex-1 p-6">
-        {/* Botón menú hamburguesa */}
-        <button
-          onClick={() => setMenuOpen(!menuOpen)}
-          className="mb-4 px-3 py-2 bg-blue-800 text-white rounded-md shadow hover:bg-blue-900 focus:outline-none relative z-50"
-        >
-          ☰
-        </button>
+        {/* Contenido principal */}
+        <div className="flex-1 p-6">
 
-        <h1 className="text-4xl font-bold text-center mb-6 text-blue-800">
-          ¡Hola Alumno!
-        </h1>
+          <h1 className="text-4xl font-bold text-center mb-6 text-blue-800">
+            ¡Hola Alumno!
+          </h1>
 
-        <div className="space-y-4 max-w-3xl mx-auto">
-          {planificacion.map((semestre, i) => (
-            <div
-              key={i}
-              className="rounded-lg shadow-lg overflow-hidden border border-blue-300"
-            >
-              <button
-                onClick={() => toggleSemestre(semestre.sem)}
-                className="w-full text-left p-4 bg-blue-300 hover:bg-blue-400 transition-colors font-semibold text-lg"
+          <div className="space-y-4 max-w-3xl mx-auto">
+            {planificacion.map((semestre, i) => (
+              <div
+                key={i}
+                className="rounded-2xl shadow-md border border-blue-400 overflow-hidden"
               >
-                {formatSemestre(semestre.sem)}
-              </button>
+                <button
+                  onClick={() => toggleSemestre(semestre.sem)}
+                  className="w-full text-left p-4 bg-blue-200 hover:bg-blue-400 transition-colors font-semibold text-lg"
+                >
+                  {formatSemestre(semestre.sem)}
+                </button>
 
-              {openSemestres[semestre.sem] && (
-                <div className="p-4 bg-blue-100 space-y-2">
-                  {semestre.ramos.map((ramo, j) => (
-                    <div
-                      key={j}
-                      className={`p-2 rounded shadow ${getRamoColor(
-                        ramo.estado
-                      )}`}
-                    >
-                      <strong>{ramo.nombre}</strong> -{" "}
-                      {ramo.estado ?? "Sin estado"}
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-          ))}
+                {openSemestres[semestre.sem] && (
+                  <div className="p-4 bg-blue-50 space-y-2">
+                    {semestre.ramos.map((ramo, j) => (
+                      <div
+                        key={j}
+                        className={`p-2 rounded-xl shadow ${getRamoColor(
+                          ramo.estado
+                        )} `}
+                      >
+                        <strong>{ramo.nombre}</strong> -{" "}
+                        {ramo.estado.toUpperCase() ?? "Sin estado"}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
         </div>
-      </div>
     </div>
+    
   );
 }
 

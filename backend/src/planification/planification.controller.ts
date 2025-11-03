@@ -1,4 +1,4 @@
-import { Controller, Get, Param, UseGuards, Req } from '@nestjs/common';
+import { Controller, Get, Param, UseGuards, Req, Post, Body } from '@nestjs/common';
 import { PlanificationService } from './planification.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 
@@ -8,17 +8,21 @@ export class PlanificationController {
   ) {}
 
   @UseGuards(JwtAuthGuard)
-  @Get('generar')
-  generar(@Req() req) {
-    const body = {
+  @Post('generar')
+  generar(@Req() req, @Body() body) {
+    const data = {
       rut: req.user.rut,
       carrera: {
         codigo: req.user.carreras[0].codigo,
         catalogo: req.user.carreras[0].catalogo,
         nombre: req.user.carreras[0].nombre,
       },
+      nombre:body.nombre,
+      maxCredits: body.maxCredits,
+      postponed: body.postponed,
+      priority: body.priority,
     };
-    return this.planificationService.generarPlanificacion(body);
+    return this.planificationService.generarPlanS(data);
   }
 
   // Nuevo endpoint para obtener una planificación según su ranking

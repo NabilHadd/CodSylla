@@ -9,7 +9,7 @@ export class PlanificationService {
         private readonly prisma: PrismaService
       ) {}
 
-      async generarPlanificacion(body: { 
+      async generarPlan(body: { 
                   rut: string; 
                   carrera: { codigo: string; catalogo: string; nombre: string; },
               })
@@ -123,6 +123,141 @@ export class PlanificationService {
           plan,
           totalSemestres: plan.length,
         };
+
+      }
+
+      async generarPlanS(body: { 
+        rut: string; 
+        carrera: { codigo: string; catalogo: string; nombre: string; },
+        nombre: string;
+        maxCredits: number;
+        postponed: { codigo: string; nombre: string }[];
+        priority: { codigo: string; nombre: string }[];
+      }){
+
+        const { rut, carrera, nombre, maxCredits, postponed, priority} = body;
+
+        const MAX_CREDITOS = maxCredits
+        const NOMBRE = nombre
+
+        const fecha_creacion = new Date();
+
+        const aprobados = await this.getRamosAprobados(rut)
+        const ramos = await this.getRamos(carrera.codigo, carrera.catalogo)
+        const historial = await this.getHistorial(rut)
+        historial.sort((a, b) => Number(a.sem_cursado) - Number(b.sem_cursado));
+
+
+        //codigo de los ramos aprobados
+        const aprobados_cod = aprobados.map(r => (ramos.find(ra => (ra.codigo_ramo == r.codigo_ramo)))).filter(r => r != null).map(r => r.codigo_ramo)
+        
+        //codigo de los ramos pendientes
+        const pendientes = ramos.filter(r => !aprobados_cod.includes(r.codigo_ramo)).map(r => r.codigo_ramo)
+
+        //semestres sin los de verano ni invierno
+        const semestresNormales = historial
+          .map(h => Number(h.sem_cursado))
+          .filter(s => ![15, 25].includes(Number(String(s).slice(-2))));
+        
+        let maxSemestre = semestresNormales.length > 0 ? Math.max(...semestresNormales) : 0;
+        let minSemestre = semestresNormales.length > 0 ? Math.min(...semestresNormales) : 0;
+
+        const aux = historial.map(x => x.sem_cursado);
+        const semestres_historial = [...new Set(aux)]
+          .sort((a, b) => Number(a) - Number(b));
+
+
+
+        
+
+
+
+        let plan: { semestre: number; ramos: { codigo: string; estado: string; creditos: number }[]; totalCreditos: number }[] = [];
+        let aprobados_actuales = [...aprobados_cod];
+        let pendientes_actuales = [...pendientes];
+
+        const historial_semestres = semestres_historial.map(z => historial.filter(x => x.sem_cursado == z))
+
+
+        historial_semestres.forEach(semArray => {
+          plan.push({
+            semestre: Number(semArray[0].sem_cursado), 
+            ramos: semArray.map(r => ({
+              codigo: r.codigo_ramo,
+              estado: r.estado,
+              creditos: 0 // por ahora dejamos en 0
+            })),
+            totalCreditos: 0
+          });
+        });
+
+
+
+        let semestreActual = maxSemestre > 0 ? this.siguienteSemestre(maxSemestre) : 200010; // primer semestre si no hay historial
+        const semestre = semestreActual;
+
+        while (pendientes_actuales.length > 0) {
+          const disponiblesAhora = await this.disponibles(pendientes_actuales, aprobados_actuales);
+
+          if (disponiblesAhora.length === 0) {
+            console.warn("No hay más ramos disponibles (posible dependencia circular o datos incompletos)");
+            break;
+          }
+
+          // Traer info completa de cada ramo
+          const ramosDetallados = await this.prisma.ramo.findMany({
+            where: { codigo: { in: disponiblesAhora } },
+            select: { codigo: true, nombre: true, creditos: true, nivel: true },
+          });
+
+          // Ordenar por nivel
+          const ordenados = ramosDetallados.sort((a, b) => Number(a.nivel) - Number(b.nivel));
+
+          let semestreRamos: { codigo: string; estado: string; creditos: number }[] = [];
+          let creditos = 0;
+
+          for (const ramo of ordenados) {
+            if (creditos + ramo.creditos <= MAX_CREDITOS) {
+              semestreRamos.push({ codigo: ramo.codigo, estado: "pendiente", creditos: ramo.creditos });
+              creditos += ramo.creditos;
+            }
+          }
+
+          plan.push({ semestre: semestreActual, ramos: semestreRamos, totalCreditos: creditos });
+
+          aprobados_actuales.push(...ordenados.map(r => r.codigo));
+          pendientes_actuales = pendientes_actuales.filter(r => !ordenados.map(r => r.codigo).includes(r));
+
+          // Avanzar al siguiente semestre normal
+          semestreActual = this.siguienteSemestre(semestreActual);
+        }
+
+        //console.log('plan provisional')
+        //console.log(JSON.stringify(plan, null, 2));
+
+
+        try {
+          await this.createPlan(
+            rut,
+            NOMBRE,
+            String(semestre),
+            await this.getMaxRanking(rut),
+            fecha_creacion
+          );
+
+          await this.agregarRamosPlanificacion(rut, fecha_creacion, plan);
+
+          return {
+            success: true,
+            plan,
+            totalSemestres: plan.length,
+          };
+        } catch (error) {
+          return { success: false, error: error.message || 'Error al crear el plan.' };
+        }
+
+
+        // 7️⃣ retorno final
 
       }
 
@@ -287,6 +422,18 @@ export class PlanificationService {
 
         return semestres;
       }
+
+      async getMaxRanking(rut: string){
+        const planes = await this.prisma.planificacion.findMany({
+          where: {
+            rut_alumno: rut,
+          },
+        });
+
+        const rankings = planes.map(r => r.ranking)
+
+        return (rankings.length > 0) ?  (Math.max(...rankings) + 1) : 0;
+      }
     
       //devuelve el semestre siguiente
       siguienteSemestre(sem: number): number {
@@ -296,6 +443,7 @@ export class PlanificationService {
         else return (anio + 1) * 100 + 10; // pasar al primer semestre del año siguiente
       }
 
+    
       async createPlan(
         rut: string,
         nombre: string,
@@ -303,17 +451,30 @@ export class PlanificationService {
         ranking: number,
         fecha: Date
       ) {
+        const existingPlan = await this.prisma.planificacion.findFirst({
+          where: {
+            rut_alumno: rut,
+            nombre_plan: nombre,
+          },
+        });
+
+        if (existingPlan) {
+          throw new Error('Ya existe un plan con ese nombre para este alumno.');
+        }
+
         const plan = await this.prisma.planificacion.create({
           data: {
             rut_alumno: rut,
-            fecha: fecha,
+            fecha,
             nombre_plan: nombre,
             sem_plan: semestre,
-            ranking: ranking
-          }
+            ranking,
+          },
         });
+
         return plan;
       }
+
 
 
       async agregarRamosPlanificacion(
