@@ -3,6 +3,7 @@ import { PlanificationService } from './planification.service';
 import { PlanificationController } from './planification.controller';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { JwtModule } from '@nestjs/jwt';
+import { GetAllService } from 'src/get-all/get-all.service';
 
 @Module({
   imports: [
@@ -11,7 +12,8 @@ import { JwtModule } from '@nestjs/jwt';
   controllers: [PlanificationController],
   providers: [
     PlanificationService,
-    PrismaService
+    PrismaService,
+    GetAllService
 
   ],
   exports: [

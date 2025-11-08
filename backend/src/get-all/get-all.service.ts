@@ -9,8 +9,8 @@ export class GetAllService {
         private readonly prisma: PrismaService
         ) {}
 
-async getRamos(body: { rut: string; carrera: { codigo: string; catalogo: string }}) {
-    const { rut, carrera } = body;
+    async getRamos(body: { rut: string; carrera: { codigo: string; catalogo: string }}) {
+        const { rut, carrera } = body;
 
     // Todos los ramos del syllabus de la carrera
     const ramos = await this.prisma.ramos_syllabus.findMany({
@@ -57,5 +57,93 @@ async getRamos(body: { rut: string; carrera: { codigo: string; catalogo: string 
 
         return filtro.map(x => x.codigo_ramo);
     }
+
+    getSemestreActual(){
+        const fecha = new Date()
+        const semestre = String(fecha.getFullYear()) + (fecha.getMonth() < 5 ? '10' : '20')
+        return Number(semestre)
+    }
+
+    async getRamosActuales(rut: string){
+        const ramosActuales = await this.prisma.historial_academico.findMany({
+            where:{
+                sem_cursado: String(this.getSemestreActual()),
+                rut_alumno: rut,
+            },
+        });
+
+        return ramosActuales;
+    }
+
+    //trae devuelta los codigos de preramo de un ramo
+    async getPreramosCodes(codigo_ramo: string): Promise<string[]> {
+        const prereqs = await this.prisma.prerequisitos.findMany({
+          where: { codigo_ramo }
+        });
+        return prereqs.map(p => p.codigo_preramo); // <-- solo los códigos
+      }
+
+              //se esta obviando que los inscritos se aprobaron solo para la planificación provisional.
+      async getRamosAprobados(rutAlumno: string) {
+        return this.prisma.historial_academico.findMany({
+          where: {
+            rut_alumno: rutAlumno,
+            estado: {
+              not: 'REPROBADO', // Filtra todo lo que NO sea "reprobado"
+            },
+          },
+        });
+      }
+
+
+
+      
+
+      //trae devuelta TODOS los ramos del historial.
+    async getHistorial(rutAlumno: string){
+        return this.prisma.historial_academico.findMany({
+          where: {
+            rut_alumno: rutAlumno,
+          },
+        });
+    }
+
+
+
+      //no se usa
+      //trae de vuelta los preramos de un ramo
+      async getPreramos(codigo_ramo: string){
+        return this.prisma.prerequisitos.findMany({
+          where: {
+            codigo_ramo: codigo_ramo
+          },
+        });
+      }
+
+            //despues de cada semestre construido se agrega a aprobados los ramos que se incluyeron en el semesre.
+      async getDisponibles(
+        ramosPendientes: string[],
+        ramosAprobados: string[],
+        postponed?: { codigo: string; nombre: string }[],
+      ) {
+        
+          const preramosList = await Promise.all(
+            ramosPendientes.map(x => this.getPreramosCodes(x))
+          );
+
+          const disponibles = ramosPendientes.filter((ramo, i) =>
+            preramosList[i].every(pr => ramosAprobados.includes(pr))
+          );
+          if(!postponed){
+            return disponibles
+          }else {
+            return disponibles.filter(d => !postponed.map(p => p.codigo).includes(d))
+          }
+
+
+      }
+
+
+
 
 }

@@ -1,4 +1,4 @@
-import { Controller, Get, Req, UseGuards } from '@nestjs/common';
+import { Controller, Get, Req, UseGuards, Query, Post, Body } from '@nestjs/common';
 import { GetAllService } from './get-all.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 
@@ -23,6 +23,35 @@ export class GetAllController {
     };
 
     return this.getAllService.getRamos(body);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Get('aprobados')
+  async obtenerAprobados(@Req() req) {
+    const rut = req.user.rut;
+
+    return this.getAllService.getRamosAprobados(rut);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Post('disponibles')
+  async obtenerPendientes(
+    @Req() req,
+    @Body() body: { pendientes: string[]; aprobados: string[] }
+  ) {
+    const rut = req.user.rut;
+    const { pendientes, aprobados } = body;
+
+    return this.getAllService.getDisponibles(pendientes, aprobados);
+  }
+
+
+
+
+  //full testeo este endpoint. la idea es llamarla inyectando getAll.
+  @Get('semestre')
+  async getSemestreActual(@Query('rut') rut: string) {
+    return this.getAllService.getRamosActuales(rut);
   }
 
 }

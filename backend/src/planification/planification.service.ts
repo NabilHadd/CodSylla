@@ -1,4 +1,6 @@
 import { Injectable } from '@nestjs/common';
+import { throwError } from 'rxjs';
+import { GetAllService } from 'src/get-all/get-all.service';
 import { PrismaService } from 'src/prisma/prisma.service';
 
 @Injectable()
@@ -6,7 +8,8 @@ export class PlanificationService {
 
     //y aca se maneja la logica haciendo uso de rut, debido a que ya sea desde local storage o desde auth, se obtendra
       constructor(
-        private readonly prisma: PrismaService
+        private readonly prisma: PrismaService,
+        private readonly getAll: GetAllService
       ) {}
 
       async generarPlan(body: { 
@@ -19,9 +22,9 @@ export class PlanificationService {
         const MAX_CREDITOS = 32;
         const { rut, carrera} = body;
 
-        const aprobados = await this.getRamosAprobados(rut)
+        const aprobados = await this.getAll.getRamosAprobados(rut)
         const ramos = await this.getRamos(carrera.codigo, carrera.catalogo)
-        const historial = await this.getHistorial(rut)
+        const historial = await this.getAll.getHistorial(rut)
         historial.sort((a, b) => Number(a.sem_cursado) - Number(b.sem_cursado));
 
 
@@ -47,8 +50,6 @@ export class PlanificationService {
 
         
 
-
-
         let plan: { semestre: number; ramos: { codigo: string; estado: string; creditos: number }[]; totalCreditos: number }[] = [];
         let aprobados_actuales = [...aprobados_cod];
         let pendientes_actuales = [...pendientes];
@@ -70,11 +71,11 @@ export class PlanificationService {
 
 
 
-        let semestreActual = maxSemestre > 0 ? this.siguienteSemestre(maxSemestre) : 200010; // primer semestre si no hay historial
+        let semestreActual = this.siguienteSemestre(this.getAll.getSemestreActual())// primer semestre si no hay historial
         const semestre = semestreActual;
 
         while (pendientes_actuales.length > 0) {
-          const disponiblesAhora = await this.disponibles(pendientes_actuales, aprobados_actuales);
+          const disponiblesAhora = await this.getAll.getDisponibles(pendientes_actuales, aprobados_actuales);
 
           if (disponiblesAhora.length === 0) {
             console.warn("No hay más ramos disponibles (posible dependencia circular o datos incompletos)");
@@ -142,9 +143,10 @@ export class PlanificationService {
 
         const fecha_creacion = new Date();
 
-        const aprobados = await this.getRamosAprobados(rut)
+        const aprobados = await this.getAll.getRamosAprobados(rut)
         const ramos = await this.getRamos(carrera.codigo, carrera.catalogo)
-        const historial = await this.getHistorial(rut)
+        const historial = await this.getAll.getHistorial(rut)
+
         historial.sort((a, b) => Number(a.sem_cursado) - Number(b.sem_cursado));
 
 
@@ -154,13 +156,6 @@ export class PlanificationService {
         //codigo de los ramos pendientes
         const pendientes = ramos.filter(r => !aprobados_cod.includes(r.codigo_ramo)).map(r => r.codigo_ramo)
 
-        //semestres sin los de verano ni invierno
-        const semestresNormales = historial
-          .map(h => Number(h.sem_cursado))
-          .filter(s => ![15, 25].includes(Number(String(s).slice(-2))));
-        
-        let maxSemestre = semestresNormales.length > 0 ? Math.max(...semestresNormales) : 0;
-        let minSemestre = semestresNormales.length > 0 ? Math.min(...semestresNormales) : 0;
 
         const aux = historial.map(x => x.sem_cursado);
         const semestres_historial = [...new Set(aux)]
@@ -193,25 +188,36 @@ export class PlanificationService {
 
 
 
-        let semestreActual = maxSemestre > 0 ? this.siguienteSemestre(maxSemestre) : 200010; // primer semestre si no hay historial
+        let semestreActual = this.siguienteSemestre(this.getAll.getSemestreActual()) // primer semestre si no hay historial
         const semestre = semestreActual;
 
+                  // Ordenar por prioridad y nivel
+
+
         while (pendientes_actuales.length > 0) {
-          const disponiblesAhora = await this.disponibles(pendientes_actuales, aprobados_actuales);
 
-          if (disponiblesAhora.length === 0) {
-            console.warn("No hay más ramos disponibles (posible dependencia circular o datos incompletos)");
-            break;
-          }
+          const disponiblesAhora = pendientes.length == pendientes_actuales.length
+            ? await this.getAll.getDisponibles(pendientes_actuales, aprobados_actuales, postponed)
+            : await this.getAll.getDisponibles(pendientes_actuales, aprobados_actuales);
 
-          // Traer info completa de cada ramo
+          if (disponiblesAhora.length === 0)
+            throw new Error("No hay ramos disponibles para continuar la planificación.");
+
+          // Traer info completa
           const ramosDetallados = await this.prisma.ramo.findMany({
             where: { codigo: { in: disponiblesAhora } },
             select: { codigo: true, nombre: true, creditos: true, nivel: true },
           });
 
-          // Ordenar por nivel
-          const ordenados = ramosDetallados.sort((a, b) => Number(a.nivel) - Number(b.nivel));
+          // Ordenar por nivel (o prioridad)
+          const ordenados = ramosDetallados.sort((a, b) => {
+            const aPrioritario = priority.some(p => p.codigo === a.codigo);
+            const bPrioritario = priority.some(p => p.codigo === b.codigo);
+
+            if (aPrioritario && !bPrioritario) return -1; // a primero
+            if (!aPrioritario && bPrioritario) return 1;  // b primero
+            return Number(a.nivel) - Number(b.nivel); // si ambos o ninguno, por nivel
+          });
 
           let semestreRamos: { codigo: string; estado: string; creditos: number }[] = [];
           let creditos = 0;
@@ -223,17 +229,28 @@ export class PlanificationService {
             }
           }
 
+          // ✅ Si no se pudo agregar ninguno (por límite bajo), agregar el más bajo nivel igual
+          if (semestreRamos.length === 0 && ordenados.length > 0) {
+            const ramoGrande = ordenados[0];
+            semestreRamos.push({ codigo: ramoGrande.codigo, estado: "pendiente", creditos: ramoGrande.creditos });
+            creditos = ramoGrande.creditos;
+          }
+
+          // Guardar el semestre
           plan.push({ semestre: semestreActual, ramos: semestreRamos, totalCreditos: creditos });
 
-          aprobados_actuales.push(...ordenados.map(r => r.codigo));
-          pendientes_actuales = pendientes_actuales.filter(r => !ordenados.map(r => r.codigo).includes(r));
+          // Actualizar aprobados y pendientes solo con los realmente agregados
+          const cursadosEsteSemestre = semestreRamos.map(r => r.codigo);
+          aprobados_actuales.push(...cursadosEsteSemestre);
+          pendientes_actuales = pendientes_actuales.filter(r => !cursadosEsteSemestre.includes(r));
 
-          // Avanzar al siguiente semestre normal
+          // Avanzar semestre
           semestreActual = this.siguienteSemestre(semestreActual);
         }
 
-        //console.log('plan provisional')
-        //console.log(JSON.stringify(plan, null, 2));
+
+        console.log('plan provisional')
+        console.log(JSON.stringify(plan, null, 2));
 
 
         try {
@@ -316,45 +333,9 @@ export class PlanificationService {
         
       }
 
-      //despues de cada semestre construido se agrega a aprobados los ramos que se incluyeron en el semesre.
-      async disponibles(ramosPendientes: string[], ramosAprobados: string[]) {
-          const preramosList = await Promise.all(
-            ramosPendientes.map(x => this.getPreramosCodes(x))
-          );
-
-          return ramosPendientes.filter((ramo, i) =>
-            preramosList[i].every(pr => ramosAprobados.includes(pr))
-          );
-      }
 
 
-
-        //se esta obviando que los inscritos se aprobaron solo para la planificación provisional.
-      async getRamosAprobados(rutAlumno: string) {
-        return this.prisma.historial_academico.findMany({
-          where: {
-            rut_alumno: rutAlumno,
-            estado: {
-              not: 'REPROBADO', // Filtra todo lo que NO sea "reprobado"
-            },
-          },
-        });
-      }
-
-
-
-      
-
-      //trae devuelta TODOS los ramos del historial.
-      async getHistorial(rutAlumno: string){
-        return this.prisma.historial_academico.findMany({
-          where: {
-            rut_alumno: rutAlumno,
-          },
-        });
-      }
-
-      //trae devuelta todos los ramos de una carrera
+            //trae devuelta todos los ramos de una carrera
       async getRamos(codigo_syll: string, catalogo: string){
         return this.prisma.ramos_syllabus.findMany({
           where: {
@@ -365,25 +346,6 @@ export class PlanificationService {
       }
 
 
-
-      //no se usa
-      //trae de vuelta los preramos de un ramo
-      async getPreramos(codigo_ramo: string){
-        return this.prisma.prerequisitos.findMany({
-          where: {
-            codigo_ramo: codigo_ramo
-          },
-        });
-      }
-
-
-      //trae devuelta los codigos de preramo de un ramo
-      async getPreramosCodes(codigo_ramo: string): Promise<string[]> {
-        const prereqs = await this.prisma.prerequisitos.findMany({
-          where: { codigo_ramo }
-        });
-        return prereqs.map(p => p.codigo_preramo); // <-- solo los códigos
-      }
 
       //no se usa
       //calcula todos los semestres entre un rango de semestres

@@ -14,30 +14,69 @@ export default function MainForm() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
   const navigate = useNavigate();
+  const [disponibles, setDisponibles] = useState([]);
+
+  const token = localStorage.getItem("token");
 
   useEffect(() => {
-    const token = localStorage.getItem("token");
 
-    fetch("http://localhost:3001/get-all/ramos", {
-      headers: {
-        Authorization: `Bearer ${token}`,
-        "Content-Type": "application/json",
-      },
-    })
-      .then((res) => {
-        if (!res.ok) throw new Error("Error al obtener los ramos");
-        return res.json();
-      })
-      .then((data) => {
-        // ensure data is array
-        setRamos(Array.isArray(data) ? data : []);
-        setLoading(false);
-      })
-      .catch((err) => {
-        setError(err.message);
-        setLoading(false);
+
+  async function fetchData() {
+    try {
+      // obtener todos los ramos
+      const resRamos = await fetch("http://localhost:3001/get-all/ramos", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
       });
-  }, []);
+      const dataRamos = await resRamos.json();
+      console.log(dataRamos)
+      setRamos(Array.isArray(dataRamos) ? dataRamos : []);
+
+      // obtener aprobados
+      const resAprobados = await fetch("http://localhost:3001/get-all/aprobados", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      });
+      const dataAprobados = await resAprobados.json();
+      console.log(dataAprobados)
+
+      // preparar body para disponibles
+      const pendientes = await dataRamos.map(r => r.codigo);
+      console.log(pendientes)
+      
+      const body = {
+        pendientes,
+        aprobados: dataAprobados.map(a => a.codigo_ramo),
+      };
+
+      // obtener disponibles
+      const resDisponibles = await fetch("http://localhost:3001/get-all/disponibles", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(body),
+      });
+
+      const dataDisponibles = await resDisponibles.json();
+      setDisponibles(Array.isArray(dataDisponibles) ? dataDisponibles : []);
+
+      setLoading(false);
+    } catch (err) {
+      setError(err.message);
+      setLoading(false);
+    }
+  }
+
+  fetchData();
+}, [token]);
+
+  
 
   const handleLogout = () => {
     localStorage.removeItem("token");
@@ -189,43 +228,45 @@ export default function MainForm() {
       {/* Main content */}
       <main className="p-6 max-w-6xl mx-auto">
       {/* Nombre planificación + Límite de créditos en la misma línea */}
-      <div className="flex flex-col gap-4 mb-6">
-        {/* Nombre planificación */}
-        <div className="flex flex-col md:flex-row md:items-center gap-2 md:gap-3 flex-1">
-          <span className="text-sm font-medium text-slate-600 md:w-44">Nombre planificación:</span>
-          <TextInput
-            id="planName"
-            type="text"
-            value={nombrePlan}
-            onChange={(e) => setNombrePlan(e.target.value)}
-            placeholder="Ej: Plan Semestre 1"
-            className="flex-1 rounded-xl shadow-sm p-3"
-          />
-        </div>
+<div className="flex flex-col gap-4 mb-6">
+  {/* Nombre planificación */}
+  <div className="flex flex-col md:flex-row md:items-center gap-2 md:gap-3 flex-1">
+    <span className="text-sm font-medium text-slate-600 md:w-44">
+      Nombre planificación:
+    </span>
+    <TextInput
+      id="planName"
+      type="text"
+      value={nombrePlan}
+      onChange={(e) => setNombrePlan(e.target.value)}
+      placeholder="Ej: Plan Semestre 1"
+      className="flex-1 rounded-xl shadow-sm p-3"
+    />
+  </div>
 
-        {/* Límite de créditos */}
-        <div className="flex flex-col md:flex-row md:items-center gap-2 md:gap-3 w-full md:w-44">
-          <span className="text-sm font-medium text-slate-600 w-44 inline-block">
-            Límite de créditos por semestre:
-          </span>
+  {/* Límite de créditos */}
+  <div className="flex flex-col md:flex-row md:items-center gap-2 md:gap-3 flex-1">
+    <span className="text-sm font-medium text-slate-600 md:w-56">
+      Límite de créditos por semestre:
+    </span>
+    <TextInput
+      id="credits"
+      type="number"
+      value={maxCredits}
+      onChange={(e) => {
+        const v = Number(e.target.value);
+        if (Number.isNaN(v)) return;
+        if (v > 32) return setMaxCredits(32);
+        if (v < 0) return setMaxCredits(0);
+        setMaxCredits(v);
+      }}
+      min={0}
+      max={32}
+      className="flex-1 rounded-xl shadow-sm p-3"
+    />
+  </div>
+</div>
 
-          <TextInput
-            id="credits"
-            type="number"
-            value={maxCredits}
-            onChange={(e) => {
-              const v = Number(e.target.value);
-              if (Number.isNaN(v)) return;
-              if (v > 32) return setMaxCredits(32);
-              if (v < 0) return setMaxCredits(0);
-              setMaxCredits(v);
-            }}
-            min={0}
-            max={32}
-            className="w-full rounded-xl shadow-sm p-3"
-          />
-        </div>
-      </div>
 
 
 
@@ -233,9 +274,13 @@ export default function MainForm() {
         <section className="mb-6">
           <Card className="bg-white/80 shadow-lg rounded-2xl">
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg font-semibold text-blue-700">Ramos disponibles</h2>
+              <h2 className="text-lg font-semibold text-blue-700 mb-2">Ramos disponibles</h2>
               <div className="text-sm text-slate-500">Total: {ramos.length}</div>
             </div>
+
+            <Alert color="warning">
+              No debes postergar todos los ramos disponibles para el próximo semestre. De lo contrario no te permitira continuar
+            </Alert>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
               {ramos.length === 0 && <div className="col-span-full text-slate-500">No hay ramos disponibles</div>}
@@ -261,12 +306,16 @@ export default function MainForm() {
                       >
                         Priorizar
                       </button>
-                      <button
-                        onClick={() => moveCourse(r, "ramos", "postponed")}
-                        className="px-3 py-1 rounded-lg text-sm font-medium bg-rose-100 text-rose-700 hover:brightness-95"
-                      >
-                        Postergar
-                      </button>
+
+                      {/* Mostrar botón Postergar solo si el ramo está en los disponibles */}
+                      {disponibles.includes(r.codigo) && (
+                        <button
+                          onClick={() => moveCourse(r, "ramos", "postponed")}
+                          className="px-3 py-1 rounded-lg text-sm font-medium bg-rose-100 text-rose-700 hover:brightness-95"
+                        >
+                          Postergar
+                        </button>
+                      )}
                     </div>
                   </div>
                 </article>
