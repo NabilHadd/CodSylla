@@ -26,10 +26,11 @@ export class AdminController {
     return this.adminService.getRamos();
   }
 
-  @UseGuards(JwtAuthGuard)
+  //@UseGuards(JwtAuthGuard)
   @Get('audit-ramos')
-  findAuditRamos(@Req() req) {
-    this.ensureAdmin(req.user);
+  //findAuditRamos(@Req() req) {
+  findAuditRamos() {
+    //this.ensureAdmin(req.user);
     return this.adminService.getAuditRamos();
   }
 }

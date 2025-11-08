@@ -38,6 +38,11 @@ export class GetAllService {
         return ramosConNombre;
     }
 
+    async getCarreras(){
+      const carreras = this.prisma.carrera.findMany()
+      return carreras
+    }
+
 
     async getNombreRamo(codigo: string) {
         const ramo = await this.prisma.ramo.findFirst({
@@ -46,6 +51,21 @@ export class GetAllService {
 
         return ramo?.nombre || "";
     }
+
+
+    async getCarreraRamo(codigo: string){
+      const carrera = await this.prisma.ramos_syllabus.findFirst({
+        where: {
+          codigo_ramo: codigo
+        },
+        include: {
+          carrera: true
+        },
+      });
+
+      return carrera?.carrera || ''
+    }
+
 
     async getPendientes(rut: string): Promise<string[]> {
         const filtro = await this.prisma.historial_academico.findMany({
@@ -142,6 +162,16 @@ export class GetAllService {
 
 
       }
+
+            //devuelve el semestre siguiente
+      siguienteSemestre(sem: number): number {
+        const anio = Math.floor(sem / 100);
+        let semNum = sem % 100;
+        if (semNum === 10) return anio * 100 + 20; // pasar al segundo semestre normal
+        else return (anio + 1) * 100 + 10; // pasar al primer semestre del año siguiente
+      }
+
+      
 
 
 

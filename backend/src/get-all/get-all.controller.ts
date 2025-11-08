@@ -45,15 +45,14 @@ export class GetAllController {
     return this.getAllService.getDisponibles(pendientes, aprobados);
   }
 
-
-
-
-  //full testeo este endpoint. la idea es llamarla inyectando getAll.
-  @UseGuards(JwtAuthGuard)
   @Get('semestre')
-  async getSemestreActual(@Req() req) {
-    const rut = req.user.rut;
+  async getSemestreActual() {
     return this.getAllService.getSemestreActual();
+  }
+
+  @Get('carreras')
+  async getCarreras() {
+    return this.getAllService.getCarreras();
   }
 
 }

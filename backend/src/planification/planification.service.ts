@@ -71,7 +71,7 @@ export class PlanificationService {
 
 
 
-        let semestreActual = this.siguienteSemestre(this.getAll.getSemestreActual())// primer semestre si no hay historial
+        let semestreActual = this.getAll.siguienteSemestre(this.getAll.getSemestreActual())// primer semestre si no hay historial
         const semestre = semestreActual;
 
         while (pendientes_actuales.length > 0) {
@@ -107,7 +107,7 @@ export class PlanificationService {
           pendientes_actuales = pendientes_actuales.filter(r => !ordenados.map(r => r.codigo).includes(r));
 
           // Avanzar al siguiente semestre normal
-          semestreActual = this.siguienteSemestre(semestreActual);
+          semestreActual = this.getAll.siguienteSemestre(semestreActual);
         }
 
         //console.log('plan provisional')
@@ -188,7 +188,7 @@ export class PlanificationService {
 
 
 
-        let semestreActual = this.siguienteSemestre(this.getAll.getSemestreActual()) // primer semestre si no hay historial
+        let semestreActual = this.getAll.siguienteSemestre(this.getAll.getSemestreActual()) // primer semestre si no hay historial
         const semestre = semestreActual;
 
                   // Ordenar por prioridad y nivel
@@ -245,7 +245,7 @@ export class PlanificationService {
           pendientes_actuales = pendientes_actuales.filter(r => !cursadosEsteSemestre.includes(r));
 
           // Avanzar semestre
-          semestreActual = this.siguienteSemestre(semestreActual);
+          semestreActual = this.getAll.siguienteSemestre(semestreActual);
         }
 
 
@@ -397,13 +397,7 @@ export class PlanificationService {
         return (rankings.length > 0) ?  (Math.max(...rankings) + 1) : 0;
       }
     
-      //devuelve el semestre siguiente
-      siguienteSemestre(sem: number): number {
-        const anio = Math.floor(sem / 100);
-        let semNum = sem % 100;
-        if (semNum === 10) return anio * 100 + 20; // pasar al segundo semestre normal
-        else return (anio + 1) * 100 + 10; // pasar al primer semestre del año siguiente
-      }
+
 
     
       async createPlan(

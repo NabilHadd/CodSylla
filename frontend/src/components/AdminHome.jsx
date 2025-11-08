@@ -5,13 +5,23 @@ import { useNavigate } from "react-router-dom";
 function AdminHome() {
   const [auditLog, setAuditLog] = useState([]);
   const [ramos, setRamos] = useState([]);
+  const [auditRamos, setAuditRamos] = useState([]);
+  const [actualSem, setActualSem] = useState([]);
+  const [carreras, setCarreras] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [menuOpen, setMenuOpen] = useState(false);
   const [reloadKey, setReloadKey] = useState(0);
   const [accessDenied, setAccessDenied] = useState(false);
+  const [filtroCarrera, setFiltroCarrera] = useState("");
 
   const navigate = useNavigate();
+
+    const ramosFiltrados = filtroCarrera
+    ? auditRamos.filter(
+        (r) => r.carrera?.codigo === filtroCarrera
+      )
+    : auditRamos;
 
   // Lee el token y rol almacenado
   const token = localStorage.getItem("token");
@@ -19,6 +29,31 @@ function AdminHome() {
     () => localStorage.getItem("isAdmin") === "true",
     []
   );
+
+  const siguienteSem = (sem) => {
+    const anio = Math.floor(sem / 100);
+    let semNum = sem % 100;
+    if (semNum === 10) return anio * 100 + 20; // pasar al segundo semestre normal
+    else return (anio + 1) * 100 + 10; 
+  };
+
+  const formatSemestre = (sem) => {
+    sem = String(sem)
+    const year = sem.slice(0, 4);
+    const code = sem.slice(4);
+    switch (code) {
+      case "10":
+        return `Primer semestre ${year}`;
+      case "20":
+        return `Segundo semestre ${year}`;
+      case "15":
+        return `Verano ${year}`;
+      case "25":
+        return `Invierno ${year}`;
+      default:
+        return `Semestre desconocido ${year}`;
+    }
+  };
 
   // Tu función, en useCallback para deps del efecto
   const handleLogout = useCallback(() => {
@@ -55,14 +90,27 @@ function AdminHome() {
 
     const fetchData = async () => {
       try {
+
         setAccessDenied(false);
         const authHeaders = { Authorization: `Bearer ${token}` };
-        const [auditRes, ramosRes] = await Promise.all([
+
+        const [auditRes, ramosRes, auditRamosRes, actualSemRes, carrerasRes] = await Promise.all([
           axios.get("http://localhost:3001/admin/audit-log", {
             headers: authHeaders,
             signal: controller.signal,
           }),
           axios.get("http://localhost:3001/admin/ramos", {
+            headers: authHeaders,
+            signal: controller.signal,
+          }),axios.get("http://localhost:3001/admin/audit-ramos", {
+            headers: authHeaders,
+            signal: controller.signal,
+          }),
+            axios.get("http://localhost:3001/get-all/semestre", {
+            headers: authHeaders,
+            signal: controller.signal,
+          }),
+            axios.get("http://localhost:3001/get-all/carreras", {
             headers: authHeaders,
             signal: controller.signal,
           }),
@@ -71,6 +119,9 @@ function AdminHome() {
         if (!didCancel) {
           setAuditLog(auditRes.data);
           setRamos(ramosRes.data);
+          setAuditRamos(auditRamosRes.data)
+          setActualSem(actualSemRes.data)
+          setCarreras(carrerasRes.data)
         }
       } catch (err) {
         const isCanceled =
@@ -136,6 +187,8 @@ function AdminHome() {
     setLoading(true);
     setReloadKey((prev) => prev + 1);
   }, []);
+
+
 
   const auditLogRows = useMemo(
     () =>
@@ -305,11 +358,79 @@ function AdminHome() {
                 </p>
               </header>
 
+              {/* Tabla Audit Ramos */}
+              <section className="bg-white rounded-2xl shadow border border-slate-100 p-6">
+                <div className="flex items-center justify-between mb-4">
+                  <h2 className="text-2xl font-semibold text-slate-900">
+                    Conteo de alumnos por ramo
+                  </h2>
+
+                  <div className="flex items-center gap-3">
+                    <select
+                      value={filtroCarrera}
+                      onChange={(e) => setFiltroCarrera(e.target.value)}
+                      className="border border-slate-300 rounded-lg px-3 py-2 text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    >
+                      <option value="">Todas las carreras</option>
+                      {carreras.map((c) => (
+                        <option key={c.codigo} value={c.codigo}>
+                          {c.nombre || c.codigo}
+                        </option>
+                      ))}
+                    </select>
+
+                    <span className="text-sm font-medium text-slate-500">
+                      {ramosFiltrados.length} ramos mostrados.
+                    </span>
+                  </div>
+                </div>
+
+                <div className="overflow-x-auto">
+                  <table className="min-w-full border-collapse">
+                    <thead>
+                      <tr className="bg-slate-100 text-left text-sm text-slate-600 uppercase tracking-wide">
+                        <th className="px-4 py-2">Código</th>
+                        <th className="px-4 py-2">Nombre</th>
+                        <th className="px-4 py-2">Carrera</th>
+                        <th className="px-4 py-2">Alumnos</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {ramosFiltrados.length === 0 ? (
+                        <tr>
+                          <td
+                            colSpan={4}
+                            className="px-4 py-6 text-center text-slate-500"
+                          >
+                            No hay datos de auditoría disponibles.
+                          </td>
+                        </tr>
+                      ) : (
+                        ramosFiltrados.map((ramo) => (
+                          <tr
+                            key={ramo.codigo_ramo}
+                            className="border-b border-slate-100 text-sm text-slate-700"
+                          >
+                            <td className="px-4 py-3">{ramo.codigo_ramo}</td>
+                            <td className="px-4 py-3">{String(ramo.nombre || "Sin nombre")}</td>
+                            <td className="px-4 py-3">
+                              {ramo.carrera?.nombre || ramo.carrera?.codigo || "Sin carrera"}
+                            </td>
+                            <td className="px-4 py-3 text-center">{ramo.count}</td>
+                          </tr>
+                        ))
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+              </section>
+
+
               {/* Tabla audit_log */}
               <section className="bg-white rounded-2xl shadow border border-slate-100 p-6">
                 <div className="flex items-center justify-between mb-4">
                   <h2 className="text-2xl font-semibold text-slate-900">
-                    audit_log
+                    Registro de logeos
                   </h2>
                   <span className="text-sm font-medium text-slate-500">
                     {auditLog.length} registros
@@ -367,7 +488,7 @@ function AdminHome() {
               <section className="bg-white rounded-2xl shadow border border-slate-100 p-6">
                 <div className="flex items-center justify-between mb-4">
                   <h2 className="text-2xl font-semibold text-slate-900">
-                    Ramos
+                    Ramos registrados
                   </h2>
                   <span className="text-sm font-medium text-slate-500">
                     {ramos.length} ramos cargados.
@@ -412,6 +533,7 @@ function AdminHome() {
                   </table>
                 </div>
               </section>
+
             </div>
           </div>
         </div>
