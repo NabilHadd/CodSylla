@@ -9,6 +9,7 @@ function Home() {
   const [error, setError] = useState(null);
   const [openSemestres, setOpenSemestres] = useState({});
   const [menuOpen, setMenuOpen] = useState(false);
+  const [semestre, setSemestre] = useState({});
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -32,28 +33,51 @@ function Home() {
         setError(err.message);
         setLoading(false);
       });
+
+    fetch("http://localhost:3001/get-all/semestre", {
+        headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+    })
+      .then((res) => {
+        if (!res.ok) throw new Error("Error al obtener la planificación");
+        return res.json();
+      })
+      .then((data) => {
+        setSemestre(data);
+        setLoading(false);
+      })
+      .catch((err) => {
+        setError(err.message);
+        setLoading(false);
+      });
+
   }, []);
 
   const toggleSemestre = (sem) => {
     setOpenSemestres((prev) => ({ ...prev, [sem]: !prev[sem] }));
   };
 
-  const formatSemestre = (sem) => {
-    const year = sem.slice(0, 4);
-    const code = sem.slice(4);
-    switch (code) {
-      case "10":
-        return `${year} - Primer semestre`;
-      case "20":
-        return `${year} - Segundo semestre`;
-      case "15":
-        return `${year} - Verano`;
-      case "25":
-        return `${year} - Invierno`;
-      default:
-        return `${year} - Semestre desconocido`;
-    }
-  };
+const formatSemestre = (sem) => {
+  const year = sem.slice(0, 4);
+  const code = sem.slice(4);
+  const isActual = Number(sem) === semestre;
+  const suffix = isActual ? ' (Semestre Actual)' : '';
+
+  switch (code) {
+    case "10":
+      return `${year} - Primer semestre${suffix}`;
+    case "20":
+      return `${year} - Segundo semestre${suffix}`;
+    case "15":
+      return `${year} - Verano${suffix}`;
+    case "25":
+      return `${year} - Invierno${suffix}`;
+    default:
+      return `${year} - Semestre desconocido${suffix}`;
+  }
+};
 
   const getRamoColor = (estado) => {
     switch ((estado || "").toLowerCase()) {
@@ -67,6 +91,17 @@ function Home() {
         return "bg-gray-200 text-gray-900 border border-gray-400";
     }
   };
+
+    const getSemestreColor = (sem) => {
+      console.log(sem)
+      console.log(semestre)
+      switch (Number(sem)) {
+        case Number(semestre):
+          return "yellow";
+        default:
+          return "blue";
+      }
+    };
 
   const handleLogout = () => {
     localStorage.removeItem("token");
@@ -176,17 +211,17 @@ function Home() {
             {planificacion.map((semestre, i) => (
               <div
                 key={i}
-                className="rounded-2xl shadow-md border border-blue-400 overflow-hidden"
+                className={`rounded-2xl shadow-md border border-${getSemestreColor(semestre.sem)}-400 overflow-hidden`}
               >
                 <button
                   onClick={() => toggleSemestre(semestre.sem)}
-                  className="w-full text-left p-4 bg-blue-200 hover:bg-blue-400 transition-colors font-semibold text-lg"
+                  className={`w-full text-left p-4 bg-${getSemestreColor(semestre.sem)}-200 hover:bg-${getSemestreColor(semestre.sem)}-400 transition-colors font-semibold text-lg`}
                 >
                   {formatSemestre(semestre.sem)}
                 </button>
 
                 {openSemestres[semestre.sem] && (
-                  <div className="p-4 bg-blue-50 space-y-2">
+                  <div className={`p-4 bg-${getSemestreColor(semestre.sem)}-50 space-y-2`}>
                     {semestre.ramos.map((ramo, j) => (
                       <div
                         key={j}

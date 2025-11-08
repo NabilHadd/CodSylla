@@ -60,4 +60,9 @@ export class AdminService {
       throw new Error(`Error insertando log: ${error.message}`);
     }
   }
+
+
+  async getAuditRamos(){
+    
+  }
 }

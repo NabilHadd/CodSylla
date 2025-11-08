@@ -33,13 +33,13 @@ export class GetAllController {
     return this.getAllService.getRamosAprobados(rut);
   }
 
+  
   @UseGuards(JwtAuthGuard)
   @Post('disponibles')
   async obtenerPendientes(
     @Req() req,
     @Body() body: { pendientes: string[]; aprobados: string[] }
   ) {
-    const rut = req.user.rut;
     const { pendientes, aprobados } = body;
 
     return this.getAllService.getDisponibles(pendientes, aprobados);
@@ -49,9 +49,11 @@ export class GetAllController {
 
 
   //full testeo este endpoint. la idea es llamarla inyectando getAll.
+  @UseGuards(JwtAuthGuard)
   @Get('semestre')
-  async getSemestreActual(@Query('rut') rut: string) {
-    return this.getAllService.getRamosActuales(rut);
+  async getSemestreActual(@Req() req) {
+    const rut = req.user.rut;
+    return this.getAllService.getSemestreActual();
   }
 
 }
