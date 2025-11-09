@@ -41,7 +41,7 @@ function Home() {
       },
     })
       .then((res) => {
-        if (!res.ok) throw new Error("Error al obtener la planificación");
+        if (!res.ok) throw new Error("Error al obtener semestre actual");
         return res.json();
       })
       .then((data) => {
@@ -93,8 +93,6 @@ const formatSemestre = (sem) => {
   };
 
     const getSemestreColor = (sem) => {
-      console.log(sem)
-      console.log(semestre)
       switch (Number(sem)) {
         case Number(semestre):
           return "yellow";
@@ -182,7 +180,7 @@ const formatSemestre = (sem) => {
                 Simular Ramos
               </Button>
 
-              <Button color="yellow">
+              <Button color="yellow" onClick={() => navigate('/Ranking')}>
                 Ranking
               </Button>
               

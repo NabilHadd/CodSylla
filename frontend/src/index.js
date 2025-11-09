@@ -5,6 +5,7 @@ import Login from "./components/Login";
 import Home from "./components/Home";
 import AdminHome from "./components/AdminHome";
 import MainForm from "./components/MainForm";
+import Ranking from "./components/Ranking"
 import "flowbite";
 
 import "./index.css";
@@ -17,6 +18,7 @@ root.render(
       <Route path="/home" element={<Home />} />
       <Route path="/AdminHome" element={<AdminHome />} />
       <Route path="/MainForm" element={<MainForm />} />
+      <Route path="/Ranking" element={<Ranking />} />
     </Routes>
   </BrowserRouter>
 );

@@ -335,6 +335,20 @@ export class PlanificationService {
 
 
 
+      async getPlanes(body){
+        const {rut, carrera} = body
+        
+        const planes = await this.prisma.planificacion.findMany({
+          where: {
+            rut_alumno: rut,         
+          },
+        });
+
+        return planes
+      }
+
+
+
             //trae devuelta todos los ramos de una carrera
       async getRamos(codigo_syll: string, catalogo: string){
         return this.prisma.ramos_syllabus.findMany({
@@ -453,6 +467,15 @@ export class PlanificationService {
             })),
           });
         }
+      }
+
+
+      async actualizarRanking(rut, body){
+        const planes = body
+        console.log(planes[0])
+        console.log(body[0])
+
+        //await this.prisma.planificacion.update()
       }
 
 

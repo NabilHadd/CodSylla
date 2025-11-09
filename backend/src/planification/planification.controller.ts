@@ -44,5 +44,33 @@ export class PlanificationController {
     return this.planificationService.getPlanificacion(body, Number(rank));
   }
 
+  @UseGuards(JwtAuthGuard)
+  @Get('obtener-todo')
+  async obtenerPlanes(@Req() req) {
+    const userRut = req.user.rut;
+    const carrera = req.user.carreras[0]; // primera carrera del array
+
+    const body = {
+      rut: userRut,
+      carrera: {
+        codigo: carrera.codigo,
+        catalogo: carrera.catalogo,
+        nombre: carrera.nombre,
+      },
+    };
+
+    return this.planificationService.getPlanes(body);
+  }
+
+@UseGuards(JwtAuthGuard)
+@Post('actualizar-ranking')
+async actualizarRanking(@Req() req, @Body() body: any) {
+  const rut = req.user.rut;
+
+  // body podría contener algo como: { nuevosRankings: [...] }
+  return this.planificationService.actualizarRanking(rut, body);
+}
+
+
 }
 

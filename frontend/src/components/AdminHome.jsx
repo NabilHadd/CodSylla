@@ -17,14 +17,15 @@ function AdminHome() {
 
   const navigate = useNavigate();
 
-    const ramosFiltrados = filtroCarrera
-    ? auditRamos.filter(
-        (r) => r.carrera?.codigo === filtroCarrera
-      )
-    : auditRamos;
+  const ramosFiltrados = filtroCarrera
+  ? auditRamos.filter(
+            (r) => r.carrera?.codigo === filtroCarrera
+    )
+  : auditRamos;
 
   // Lee el token y rol almacenado
   const token = localStorage.getItem("token");
+
   const isAdmin = useMemo(
     () => localStorage.getItem("isAdmin") === "true",
     []
@@ -362,7 +363,7 @@ function AdminHome() {
               <section className="bg-white rounded-2xl shadow border border-slate-100 p-6">
                 <div className="flex items-center justify-between mb-4">
                   <h2 className="text-2xl font-semibold text-slate-900">
-                    Conteo de alumnos por ramo
+                    Conteo de alumnos por ramo {formatSemestre(siguienteSem(actualSem))}
                   </h2>
 
                   <div className="flex items-center gap-3">

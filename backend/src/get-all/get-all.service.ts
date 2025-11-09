@@ -117,8 +117,6 @@ export class GetAllService {
 
 
 
-      
-
       //trae devuelta TODOS los ramos del historial.
     async getHistorial(rutAlumno: string){
         return this.prisma.historial_academico.findMany({
@@ -163,7 +161,7 @@ export class GetAllService {
 
       }
 
-            //devuelve el semestre siguiente
+      //devuelve el semestre siguiente
       siguienteSemestre(sem: number): number {
         const anio = Math.floor(sem / 100);
         let semNum = sem % 100;
@@ -172,8 +170,4 @@ export class GetAllService {
       }
 
       
-
-
-
-
 }
