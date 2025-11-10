@@ -162,11 +162,6 @@ export class PlanificationService {
           .sort((a, b) => Number(a) - Number(b));
 
 
-
-        
-
-
-
         let plan: { semestre: number; ramos: { codigo: string; estado: string; creditos: number }[]; totalCreditos: number }[] = [];
         let aprobados_actuales = [...aprobados_cod];
         let pendientes_actuales = [...pendientes];
@@ -248,9 +243,6 @@ export class PlanificationService {
           semestreActual = this.getAll.siguienteSemestre(semestreActual);
         }
 
-
-        console.log('plan provisional')
-        console.log(JSON.stringify(plan, null, 2));
 
 
         try {
@@ -469,14 +461,22 @@ export class PlanificationService {
         }
       }
 
-
-      async actualizarRanking(rut, body){
-        const planes = body
-        console.log(planes[0])
-        console.log(body[0])
-
-        //await this.prisma.planificacion.update()
+      //se podria usar el rut que esta en planes, o el del alumno en el local storage, aqui estamos usando la del local storage.
+      async actualizarRanking(rut, planes: any) {
+        for (const element of planes) {
+          await this.prisma.planificacion.update({
+            where: {
+              rut_alumno_fecha: {
+                rut_alumno: rut,
+                fecha: element.fecha,
+              },
+            },
+            data: {
+              ranking: element.ranking,
+            },
+          });
+        }
+        return { message: 'Rankings actualizados correctamente' };
       }
-
 
 }

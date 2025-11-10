@@ -66,9 +66,10 @@ export class PlanificationController {
 @Post('actualizar-ranking')
 async actualizarRanking(@Req() req, @Body() body: any) {
   const rut = req.user.rut;
+  const planes = body.planes;
 
   // body podría contener algo como: { nuevosRankings: [...] }
-  return this.planificationService.actualizarRanking(rut, body);
+  return this.planificationService.actualizarRanking(rut, planes);
 }
 
 

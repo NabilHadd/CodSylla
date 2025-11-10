@@ -1,12 +1,19 @@
 import { useNavigate } from "react-router-dom";
 import React, { useEffect, useState } from "react";
-import { Button, Spinner } from "flowbite-react";
+import { Button, Spinner, Alert} from "flowbite-react";
+import { HiChevronUp, HiChevronDown, HiX} from "react-icons/hi";
 
 function Home() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [mensaje, setMensaje] = useState("");
   const [planes, setPlanes] = useState([]);
+  const [nombrePlan, setNombrePlan] = useState([]);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [planSelect, setPlanSelect] = useState(null);
+  const [openSemestres, setOpenSemestres] = useState({});
+  const [semestre, setSemestre] = useState({});
+  const [planificacion, setPlanificacion] = useState([]);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -31,6 +38,27 @@ function Home() {
         setError(err.message);
         setLoading(false);
       });
+
+
+    fetch("http://localhost:3001/get-all/semestre", {
+        headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+    })
+      .then((res) => {
+        if (!res.ok) throw new Error("Error al obtener semestre actual");
+        return res.json();
+      })
+      .then((data) => {
+        setSemestre(data);
+        setLoading(false);
+      })
+      .catch((err) => {
+        setError(err.message);
+        setLoading(false);
+      });
+
   }, []);
 
   const getRankingColor = (rank) => {
@@ -59,30 +87,47 @@ function Home() {
   };
 
   const handleSave = async () => {
-      const token = localStorage.getItem("token");
+    const token = localStorage.getItem("token");
+    const body = { planes };
 
-      const body = {planes
-      };
+    setMensaje("");
+    setError("");
 
-      try {
-        const res = await fetch("http://localhost:3001/planification/actualizar-ranking", {
-          method: "POST",
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(body),
-        });
+    try {
+      const res = await fetch("http://localhost:3001/planification/actualizar-ranking", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(body),
+      });
 
-        if (!res.ok) throw new Error("Error al guardar rankings");
-        const data = await res.json();
-        console.log("Rankings guardados:", data);
-        alert("Rankings actualizados correctamente ✅");
-      } catch (err) {
-        console.error(err);
-        alert("No se pudo guardar el ranking ❌");
-      }
+      if (!res.ok) throw new Error("Error al guardar rankings");
+      await res.json();
+
+      setMensaje("Rankings actualizados correctamente ✅");
+    } catch (err) {
+      console.error(err);
+      setError("No se pudo guardar el ranking ❌");
+    }
   };
+
+  
+  useEffect(() => {
+    if (mensaje) {
+      const timer = setTimeout(() => setMensaje(""), 5000); // 3 segundos
+      return () => clearTimeout(timer);
+    }
+  }, [mensaje]);
+
+  useEffect(() => {
+    if (error) {
+      const timer = setTimeout(() => setError(""), 5000);
+      return () => clearTimeout(timer);
+    }
+  }, [error]);
+
 
   const handleLogout = () => {
     localStorage.removeItem("token");
@@ -90,11 +135,146 @@ function Home() {
     localStorage.removeItem("rol");
     navigate("/");
   };
+  
+  const mostrarPlan = (plan) => {
+    console.log('mostrar plan')
+    console.log(JSON.stringify(plan))
+    getPLan(plan.ranking)
+    setPlanSelect(plan);
+    setNombrePlan(plan.nombre_plan)
+  }
+
+    const toggleSemestre = (sem) => {
+    setOpenSemestres((prev) => ({ ...prev, [sem]: !prev[sem] }));
+  };
+
+const formatSemestre = (sem) => {
+  const year = sem.slice(0, 4);
+  const code = sem.slice(4);
+  const isActual = Number(sem) === semestre;
+  const suffix = isActual ? ' (Semestre Actual)' : '';
+
+  switch (code) {
+    case "10":
+      return `${year} - Primer semestre${suffix}`;
+    case "20":
+      return `${year} - Segundo semestre${suffix}`;
+    case "15":
+      return `${year} - Verano${suffix}`;
+    case "25":
+      return `${year} - Invierno${suffix}`;
+    default:
+      return `${year} - Semestre desconocido${suffix}`;
+  }
+};
+
+  const getRamoColor = (estado) => {
+    switch ((estado || "").toLowerCase()) {
+      case "aprobado":
+        return "bg-green-200 text-green-900 border border-green-400";
+      case "reprobado":
+        return "bg-red-200 text-red-900 border border-red-400";
+      case "pendiente":
+        return "bg-blue-200 text-blue-900 border border-blue-400";
+      default:
+        return "bg-gray-200 text-gray-900 border border-gray-400";
+    }
+  };
+
+    const getSemestreColor = (sem) => {
+      switch (Number(sem)) {
+        case Number(semestre):
+          return "yellow";
+        default:
+          return "blue";
+      }
+    };
+
+  const handleCerrar = () => {
+    setPlanSelect(null)
+  }
+
+  const getPLan = async (rank) => {
+    const token = localStorage.getItem("token");
+
+    fetch(`http://localhost:3001/planification/obtener/${rank}`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+    })
+      .then((res) => {
+        if (!res.ok) throw new Error("Error al obtener la planificación");
+        return res.json();
+      })
+      .then((data) => {
+        setPlanificacion(data);
+        setLoading(false);
+      })
+      .catch((err) => {
+        setError(err.message);
+        setLoading(false);
+      });
+
+  }
 
   //despues utilizar esta info para agregar info extra por cada plan del ranking
   //const togglePlan = (key) => {
   //  setOpenPlan((prev) => ({ ...prev, [key]: !prev[key] }));
   //};
+
+  if (planSelect) {
+    return (
+        <div className="flex-1 p-6 relative">
+          {/* Botón cerrar */}
+          <Button
+            color="failure"
+            pill
+            size="xs"
+            className="absolute top-4 right-4"
+            onClick={handleCerrar}
+            title="Cerrar"
+          >
+            <HiX className="h-5 w-5" />
+          </Button>
+
+          <h1 className="text-4xl font-bold text-center mb-6 text-blue-800">
+            Ranking: {nombrePlan}
+          </h1>
+
+          <div className="space-y-4 max-w-3xl mx-auto">
+            {planificacion.map((semestre, i) => (
+              <div
+                key={i}
+                className={`rounded-2xl shadow-md border border-${getSemestreColor(semestre.sem)}-400 overflow-hidden`}
+              >
+                <button
+                  onClick={() => toggleSemestre(semestre.sem)}
+                  className={`w-full text-left p-4 bg-${getSemestreColor(semestre.sem)}-200 hover:bg-${getSemestreColor(semestre.sem)}-400 transition-colors font-semibold text-lg`}
+                >
+                  {formatSemestre(semestre.sem)}
+                </button>
+
+                {openSemestres[semestre.sem] && (
+                  <div className={`p-4 bg-${getSemestreColor(semestre.sem)}-50 space-y-2`}>
+                    {semestre.ramos.map((ramo, j) => (
+                      <div
+                        key={j}
+                        className={`p-2 rounded-xl shadow ${getRamoColor(ramo.estado)}`}
+                      >
+                        <strong>{ramo.nombre}</strong> -{" "}
+                        {ramo.estado.toUpperCase() ?? "Sin estado"}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+
+    );
+  }
 
   if (loading)
     return (
@@ -126,6 +306,7 @@ function Home() {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white text-slate-800">
+
       {/* Header */}
       <header className="flex items-center justify-between px-4 py-3 bg-white shadow-md sticky top-0 z-30">
         <div className="flex items-center gap-3">
@@ -201,7 +382,9 @@ function Home() {
             planes.map((plan, i) => (
               <div
                 key={i}
-                className={`rounded-xl shadow-md border ${getRankingColor(plan.ranking)} p-4 flex items-center justify-between transition`}
+                className={`rounded-xl shadow-md border ${getRankingColor(
+                  plan.ranking
+                )} p-4 flex items-center justify-between transition`}
               >
                 <div className="font-semibold text-lg text-slate-800">
                   {plan.nombre_plan ?? "Plan sin nombre"}
@@ -209,26 +392,55 @@ function Home() {
 
                 <div className="flex items-center gap-2">
                   <span className="font-bold text-gray-700">{plan.ranking}</span>
-                  <button
+                  <Button
+                    color="light"
+                    size="xs"
+                    pill
                     onClick={() => moveUp(i)}
-                    className="p-1.5 rounded-md bg-white hover:bg-gray-100 shadow-sm border text-gray-600"
                     title="Subir"
                   >
-                    🔼
-                  </button>
-                  <button
+                    <HiChevronUp className="h-4 w-4" />
+                  </Button>
+
+                  <Button
+                    color="light"
+                    size="xs"
+                    pill
                     onClick={() => moveDown(i)}
-                    className="p-1.5 rounded-md bg-white hover:bg-gray-100 shadow-sm border text-gray-600"
                     title="Bajar"
                   >
-                    🔽
-                  </button>
+                    <HiChevronDown className="h-4 w-4" />
+                  </Button>
+
+                  <Button
+                    color="light"
+                    size="xs"
+                    onClick={() => mostrarPlan(plan)}
+                  >
+                    Mostrar
+                  </Button>
                 </div>
               </div>
             ))
           ) : (
             <p className="text-center text-gray-500">No hay planes disponibles.</p>
           )}
+
+        {mensaje && (
+          <div className="max-w-md mx-auto mt-6">
+            <Alert color="success" withBorderAccent>
+              {mensaje}
+            </Alert>
+          </div>
+        )}
+
+        {error && (
+          <div className="max-w-md mx-auto mt-6">
+            <Alert color="failure" withBorderAccent>
+              {error}
+            </Alert>
+          </div>
+        )}
         </div>
       </div>
     </div>
