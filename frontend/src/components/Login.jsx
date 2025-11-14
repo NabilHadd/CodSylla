@@ -18,7 +18,6 @@ function Login() {
         password,
       });
 
-      setMensaje("✅ Login exitoso!");
 
       const { success, admin, token, rol } = res.data;
 
