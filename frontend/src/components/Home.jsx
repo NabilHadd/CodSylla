@@ -1,15 +1,16 @@
 import { useNavigate } from "react-router-dom";
 import React, { useEffect, useState } from "react";
 import { Button,Spinner} from "flowbite-react";
+import Ramo from "./Ramo";
+import Semestre from "./Semestre";
 
 
 function Home() {
   const [planificacion, setPlanificacion] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [openSemestres, setOpenSemestres] = useState({});
   const [menuOpen, setMenuOpen] = useState(false);
-  const [semestre, setSemestre] = useState({});
+  const [semestreActual, setSemestreActual] = useState(null)
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -33,73 +34,29 @@ function Home() {
         setError(err.message);
         setLoading(false);
       });
-
-    fetch("http://localhost:3001/get-all/semestre", {
+      
+      fetch("http://localhost:3001/get-all/semestre", {
         headers: {
-        Authorization: `Bearer ${token}`,
-        "Content-Type": "application/json",
-      },
-    })
-      .then((res) => {
-        if (!res.ok) throw new Error("Error al obtener semestre actual");
-        return res.json();
-      })
-      .then((data) => {
-        setSemestre(data);
-        setLoading(false);
-      })
-      .catch((err) => {
-        setError(err.message);
-        setLoading(false);
-      });
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+          },
+        })
+        .then((res) => {
+          if (!res.ok) throw new Error("Error al obtener semestre actual");
+          return res.json();
+        })
+        .then((data) => {
+          setSemestreActual(data);
+          setLoading(false);
+        })
+        .catch((err) => {
+          setError(err.message);
+          setLoading(false);
+        });
 
   }, []);
 
-  const toggleSemestre = (sem) => {
-    setOpenSemestres((prev) => ({ ...prev, [sem]: !prev[sem] }));
-  };
 
-const formatSemestre = (sem) => {
-  const year = sem.slice(0, 4);
-  const code = sem.slice(4);
-  const isActual = Number(sem) === semestre;
-  const suffix = isActual ? ' (Semestre Actual)' : '';
-
-  switch (code) {
-    case "10":
-      return `${year} - Primer semestre${suffix}`;
-    case "20":
-      return `${year} - Segundo semestre${suffix}`;
-    case "15":
-      return `${year} - Verano${suffix}`;
-    case "25":
-      return `${year} - Invierno${suffix}`;
-    default:
-      return `${year} - Semestre desconocido${suffix}`;
-  }
-};
-
-  const getRamoColor = (estado) => {
-    switch ((estado || "").toLowerCase()) {
-      case "aprobado":
-        return "bg-green-200 text-green-900 border border-green-400";
-      case "reprobado":
-        return "bg-red-200 text-red-900 border border-red-400";
-      case "pendiente":
-        return "bg-blue-200 text-blue-900 border border-blue-400";
-      default:
-        return "bg-gray-200 text-gray-900 border border-gray-400";
-    }
-  };
-
-    const getSemestreColor = (sem) => {
-      switch (Number(sem)) {
-        case Number(semestre):
-          return "yellow";
-        default:
-          return "blue";
-      }
-    };
 
   const handleLogout = () => {
     localStorage.removeItem("token");
@@ -206,33 +163,10 @@ const formatSemestre = (sem) => {
           </h1>
 
           <div className="space-y-4 max-w-3xl mx-auto">
-            {planificacion.map((semestre, i) => (
-              <div
-                key={i}
-                className={`rounded-2xl shadow-md border border-${getSemestreColor(semestre.sem)}-400 overflow-hidden`}
-              >
-                <button
-                  onClick={() => toggleSemestre(semestre.sem)}
-                  className={`w-full text-left p-4 bg-${getSemestreColor(semestre.sem)}-200 hover:bg-${getSemestreColor(semestre.sem)}-400 transition-colors font-semibold text-lg`}
-                >
-                  {formatSemestre(semestre.sem)}
-                </button>
-
-                {openSemestres[semestre.sem] && (
-                  <div className={`p-4 bg-${getSemestreColor(semestre.sem)}-50 space-y-2`}>
-                    {semestre.ramos.map((ramo, j) => (
-                      <div
-                        key={j}
-                        className={`p-2 rounded-xl shadow ${getRamoColor(
-                          ramo.estado
-                        )} `}
-                      >
-                        <strong>{ramo.nombre}</strong> -{" "}
-                        {ramo.estado.toUpperCase() ?? "Sin estado"}
-                      </div>
-                    ))}
-                  </div>
-                )}
+            {planificacion.map((semestr, i) => (
+              
+              <div key={i}>
+                <Semestre sem={semestr} semActual={semestreActual} />
               </div>
             ))}
           </div>
