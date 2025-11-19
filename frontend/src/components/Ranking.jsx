@@ -2,6 +2,10 @@ import { useNavigate } from "react-router-dom";
 import React, { useEffect, useState } from "react";
 import { Button, Spinner, Alert} from "flowbite-react";
 import { HiChevronUp, HiChevronDown, HiX} from "react-icons/hi";
+import Plan from "./Planificacion/PLan";
+import Header from "./Header";
+import SideMenu from "./SideMenu";
+import Footer from "./Footer";
 
 function Home() {
   const [loading, setLoading] = useState(true);
@@ -11,7 +15,6 @@ function Home() {
   const [nombrePlan, setNombrePlan] = useState([]);
   const [menuOpen, setMenuOpen] = useState(false);
   const [planSelect, setPlanSelect] = useState(null);
-  const [openSemestres, setOpenSemestres] = useState({});
   const [semestre, setSemestre] = useState({});
   const [planificacion, setPlanificacion] = useState([]);
   const navigate = useNavigate();
@@ -144,52 +147,6 @@ function Home() {
     setNombrePlan(plan.nombre_plan)
   }
 
-    const toggleSemestre = (sem) => {
-    setOpenSemestres((prev) => ({ ...prev, [sem]: !prev[sem] }));
-  };
-
-const formatSemestre = (sem) => {
-  const year = sem.slice(0, 4);
-  const code = sem.slice(4);
-  const isActual = Number(sem) === semestre;
-  const suffix = isActual ? ' (Semestre Actual)' : '';
-
-  switch (code) {
-    case "10":
-      return `${year} - Primer semestre${suffix}`;
-    case "20":
-      return `${year} - Segundo semestre${suffix}`;
-    case "15":
-      return `${year} - Verano${suffix}`;
-    case "25":
-      return `${year} - Invierno${suffix}`;
-    default:
-      return `${year} - Semestre desconocido${suffix}`;
-  }
-};
-
-  const getRamoColor = (estado) => {
-    switch ((estado || "").toLowerCase()) {
-      case "aprobado":
-        return "bg-green-200 text-green-900 border border-green-400";
-      case "reprobado":
-        return "bg-red-200 text-red-900 border border-red-400";
-      case "pendiente":
-        return "bg-blue-200 text-blue-900 border border-blue-400";
-      default:
-        return "bg-gray-200 text-gray-900 border border-gray-400";
-    }
-  };
-
-    const getSemestreColor = (sem) => {
-      switch (Number(sem)) {
-        case Number(semestre):
-          return "yellow";
-        default:
-          return "blue";
-      }
-    };
-
   const handleCerrar = () => {
     setPlanSelect(null)
   }
@@ -242,35 +199,7 @@ const formatSemestre = (sem) => {
             Ranking: {nombrePlan}
           </h1>
 
-          <div className="space-y-4 max-w-3xl mx-auto">
-            {planificacion.map((semestre, i) => (
-              <div
-                key={i}
-                className={`rounded-2xl shadow-md border border-${getSemestreColor(semestre.sem)}-400 overflow-hidden`}
-              >
-                <button
-                  onClick={() => toggleSemestre(semestre.sem)}
-                  className={`w-full text-left p-4 bg-${getSemestreColor(semestre.sem)}-200 hover:bg-${getSemestreColor(semestre.sem)}-400 transition-colors font-semibold text-lg`}
-                >
-                  {formatSemestre(semestre.sem)}
-                </button>
-
-                {openSemestres[semestre.sem] && (
-                  <div className={`p-4 bg-${getSemestreColor(semestre.sem)}-50 space-y-2`}>
-                    {semestre.ramos.map((ramo, j) => (
-                      <div
-                        key={j}
-                        className={`p-2 rounded-xl shadow ${getRamoColor(ramo.estado)}`}
-                      >
-                        <strong>{ramo.nombre}</strong> -{" "}
-                        {ramo.estado.toUpperCase() ?? "Sin estado"}
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-            ))}
-          </div>
+          <Plan planificacion={planificacion} semestreActual={semestre}/>
         </div>
 
     );
@@ -308,68 +237,24 @@ const formatSemestre = (sem) => {
     <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white text-slate-800">
 
       {/* Header */}
-      <header className="flex items-center justify-between px-4 py-3 bg-white shadow-md sticky top-0 z-30">
-        <div className="flex items-center gap-3">
-          {/* Botón de menú hamburguesa */}
-          <button
-            aria-label="menu"
-            onClick={() => setMenuOpen(true)}
-            className="p-2 rounded-lg hover:bg-blue-100 transition"
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              className="h-6 w-6 text-blue-600"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth="2"
-                d="M4 6h16M4 12h16M4 18h16"
-              />
-            </svg>
-          </button>
-
-          <h1 className="text-xl font-semibold text-blue-700">
-            Ranking de planificaciones
-          </h1>
-        </div>
-
+      <Header setMenuOpen={setMenuOpen}>
         <Button color="blue" onClick={handleSave}>
           Guardar cambios
         </Button>
-      </header>
+      </Header>
 
       {/* Sidebar */}
       {menuOpen && (
-        <div className="fixed inset-0 z-40">
-          <div
-            className="absolute inset-0 bg-black/30"
-            onClick={() => setMenuOpen(false)}
-          />
-          <aside className="absolute left-0 top-0 bottom-0 w-72 bg-white shadow-2xl p-6 flex flex-col">
-            <div>
-              <h2 className="text-lg font-bold text-blue-700 mb-4">Menú</h2>
-              <p className="text-sm text-slate-500 mb-6">Opciones rápidas</p>
-            </div>
-
-            <div className="flex flex-col gap-3">
+        <SideMenu setMenuOpen={setMenuOpen} handleLogout={handleLogout}>
               <Button color="blue" onClick={() => navigate("/Home")}>
                 Volver
               </Button>
               <Button color="light" onClick={() => setMenuOpen(false)}>
                 Cerrar
               </Button>
-            </div>
-
-            <Button color="red" onClick={handleLogout} className="mt-auto">
-              Cerrar sesión
-            </Button>
-          </aside>
-        </div>
+        </SideMenu>
       )}
+
 
       {/* Contenido principal */}
       <div className="flex-1 p-6">
@@ -443,6 +328,7 @@ const formatSemestre = (sem) => {
         )}
         </div>
       </div>
+      <Footer/>
     </div>
   );
 }

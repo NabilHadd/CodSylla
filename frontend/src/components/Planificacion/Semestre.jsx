@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from "react";
+import React, {useState} from "react";
 import Ramo from "./Ramo";
 
 export default function Semestre({sem, semActual}){
@@ -40,7 +40,7 @@ export default function Semestre({sem, semActual}){
 
     return(
     <div
-        className={`rounded-2xl shadow-md border border-${getSemestreColor(sem.sem)}-400 overflow-hidden`}
+        className={`rounded-2xl border border-${getSemestreColor(sem.sem)}-400 overflow-hidden`}
     >
         <button
         onClick={() => toggleSemestre(sem.sem)}

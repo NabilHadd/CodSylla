@@ -103,7 +103,7 @@ export class AdminService {
 
 
     const auditRamos = await Promise.all(
-      [...new Set(ramosNextSem)].map(async (a) => ({
+      [...new Set(ramosNextSem)].map(async (a: string) => ({
         codigo_ramo: a,
         nombre: await this.getAll.getNombreRamo(a),
         count: contar(ramosNextSem, a),

@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button, TextInput, Card, Spinner, Alert } from "flowbite-react";
+import Footer from "./Footer";
 
 export default function MainForm() {
   const [nombrePlan, setNombrePlan] = useState("");
@@ -386,6 +387,7 @@ export default function MainForm() {
           <Button color="purple" onClick={() => generarPlanificacion()}>Guardar planificación</Button>
         </div>
       </main>
+      <Footer/>
     </div>
   );
 }

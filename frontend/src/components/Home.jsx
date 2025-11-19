@@ -1,8 +1,10 @@
 import { useNavigate } from "react-router-dom";
 import React, { useEffect, useState } from "react";
 import { Button,Spinner} from "flowbite-react";
-import Ramo from "./Ramo";
-import Semestre from "./Semestre";
+import Header from "./Header";
+import SideMenu from "./SideMenu";
+import Plan from "./Planificacion/PLan";
+import Footer from "./Footer";
 
 
 function Home() {
@@ -95,83 +97,52 @@ function Home() {
       </div>
     );
 
+
+
   return (
-    <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white text-slate-800">
-      {/* Header */}
-      <header className="flex items-center justify-between px-4 py-3 bg-white shadow-md sticky top-0 z-30">
-        <div className="flex items-center gap-3">
-          <button
-            aria-label="menu"
-            onClick={() => setMenuOpen(true)}
-            className="p-2 rounded-lg hover:bg-blue-100 transition"
-          >
-            {/* Hamburger */}
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16" />
-            </svg>
-          </button>
 
-          <h1 className="text-xl font-semibold text-blue-700">Planificacion Curricular Optimizada</h1>
-        </div>
+    <div>
+      <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white text-slate-800">
+        {/* Header */}
+        <Header setMenuOpen={setMenuOpen} title={'Planificacion Curricular Optimizada'}/>
 
-        <div className="hidden md:flex items-center gap-4">
-        </div>
-      </header>
-
-      {/* Sidebar overlay */}
-      {menuOpen && (
-        <div className="fixed inset-0 z-40">
-          <div className="absolute inset-0 bg-black/30" onClick={() => setMenuOpen(false)} />
-          <aside className="absolute left-0 top-0 bottom-0 w-72 bg-white shadow-2xl p-6 flex flex-col">
-            <div>
-              <h2 className="text-lg font-bold text-blue-700 mb-4">Menú</h2>
-              <p className="text-sm text-slate-500 mb-6">Opciones rápidas</p>
-            </div>
-
-            <div className="flex flex-col gap-3">
-              <Button color="blue" onClick={() => navigate('/MainForm')}>
-                Generar Planificación
-              </Button>
-
-              <Button color="purple">
-                Simular Ramos
-              </Button>
-
-              <Button color="yellow" onClick={() => navigate('/Ranking')}>
-                Ranking
-              </Button>
-              
-              <Button color="light" onClick={() => setMenuOpen(false)}>
-                Cerrar
-              </Button>
-            </div>
-
-            {/* Botón de logout abajo */}
-            <Button color="red" onClick={() => handleLogout()} className="mt-auto">
-              Cerrar Sesión
+        {/* Sidebar overlay */}
+        {menuOpen && (
+          <SideMenu setMenuOpen={setMenuOpen} handleLogout={handleLogout}>
+            <Button color="blue" onClick={() => navigate('/MainForm')}>
+              Generar Planificación
             </Button>
-          </aside>
-        </div>
-      )}
+
+            <Button color="purple">
+              Simular Ramos
+            </Button>
+
+            <Button color="yellow" onClick={() => navigate('/Ranking')}>
+              Ranking
+            </Button>
+                
+            <Button color="light" onClick={() => setMenuOpen(false)}>
+              Cerrar
+            </Button>
+          </SideMenu>
+        )}
 
 
-        {/* Contenido principal */}
-        <div className="flex-1 p-6">
+          {/* Contenido principal */}
+          <div className="flex-1 p-6">
 
-          <h1 className="text-4xl font-bold text-center mb-6 text-blue-800">
-            ¡Hola Alumno!
-          </h1>
+            <h1 className="text-4xl font-bold text-center mb-6 text-blue-800">
+              ¡Hola Alumno!
+            </h1>
 
-          <div className="space-y-4 max-w-3xl mx-auto">
-            {planificacion.map((semestr, i) => (
-              
-              <div key={i}>
-                <Semestre sem={semestr} semActual={semestreActual} />
-              </div>
-            ))}
+            <Plan semestreActual={semestreActual} planificacion={planificacion}/>
+
           </div>
-        </div>
+      </div>
+      <Footer/>
     </div>
+
+    
     
   );
 }

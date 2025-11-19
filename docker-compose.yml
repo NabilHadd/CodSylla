@@ -1,0 +1,51 @@
+version: '3.9'
+
+services:
+  db:
+    image: postgres:15
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: 123
+      POSTGRES_DB: codsylla
+    ports:
+      - "5432:5432"
+    volumes:
+      - db-data:/var/lib/postgresql/data
+
+  seed:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.seed
+    environment:
+      DB_HOST: db
+      DB_USER: postgres
+      DB_NAME: codsylla
+      DB_PASSWORD: 123
+      DATABASE_URL: postgresql://postgres:123@db:5432/codsylla
+    depends_on:
+      - db
+
+  backend:
+    build: ./backend
+    environment:
+      DATABASE_URL: postgresql://postgres:123@db:5432/codsylla
+      DB_HOST: db
+      DB_USER: postgres
+      DB_NAME: codsylla
+      DB_PASSWORD: 123
+      JWT_SECRET: nabil123
+    ports:
+      - "3001:3001"
+    depends_on:
+      - db
+      - seed
+
+  frontend:
+    build: ./frontend
+    ports:
+      - "3000:3000"
+    depends_on:
+      - backend
+
+volumes:
+  db-data:
