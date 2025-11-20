@@ -1,7 +1,9 @@
 import React from "react";
-import { Button } from "flowbite-react"; // ajusta ruta si es necesario
+import { Button } from "flowbite-react"; 
+import { useAuth } from "../../hooks/useAuth";
 
-export default function SideMenu({ setMenuOpen, handleLogout, children}) {
+export default function SideMenu({ setMenuOpen, children}) {
+  const {handleLogout} = useAuth();
 
   return (
     <div className="fixed inset-0 z-40">

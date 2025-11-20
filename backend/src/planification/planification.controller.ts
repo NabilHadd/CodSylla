@@ -7,24 +7,24 @@ export class PlanificationController {
   constructor(private readonly planificationService: PlanificationService
   ) {}
 
-  @UseGuards(JwtAuthGuard)
-  @Post('generar')
-  generar(@Req() req, @Body() body) {
-    const data = {
-      rut: req.user.rut,
-      carrera: {
-        codigo: req.user.carreras[0].codigo,
-        catalogo: req.user.carreras[0].catalogo,
-        nombre: req.user.carreras[0].nombre,
-      },
-      nombre:body.nombre,
-      maxCredits: body.maxCredits,
-      postponed: body.postponed,
-      priority: body.priority,
-    };
-    return this.planificationService.generarPlanS(data);
-  }
+@UseGuards(JwtAuthGuard)
+@Post('generar')
+async generar(@Req() req, @Body() body) {
+  const data = {
+    rut: req.user.rut,
+    carrera: {
+      codigo: req.user.carreras[0].codigo,
+      catalogo: req.user.carreras[0].catalogo,
+      nombre: req.user.carreras[0].nombre,
+    },
+    nombre: body.nombre,
+    maxCredits: body.maxCredits,
+    postponed: body.postponed,
+    priority: body.priority,
+  };
 
+  return this.planificationService.generarPlanS(data);
+}
   // Nuevo endpoint para obtener una planificación según su ranking
   @UseGuards(JwtAuthGuard)
   @Get('obtener/:rank')
@@ -68,6 +68,9 @@ async actualizarRanking(@Req() req, @Body() body: any) {
   const rut = req.user.rut;
   const planes = body.planes;
 
+
+  // Simular retraso de 2 segundos
+  //await new Promise((resolve) => setTimeout(resolve, 2000));
   // body podría contener algo como: { nuevosRankings: [...] }
   return this.planificationService.actualizarRanking(rut, planes);
 }

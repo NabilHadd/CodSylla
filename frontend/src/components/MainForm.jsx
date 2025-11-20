@@ -1,7 +1,12 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Button, TextInput, Card, Spinner, Alert } from "flowbite-react";
-import Footer from "./Footer";
+import { Button, TextInput, Card, Alert } from "flowbite-react";
+import Footer from "./Utils/Footer";
+import Header from "./Utils/Header"
+import SideMenu from "./Utils/SideMenu";
+import RestrictedAcces from "./Utils/RestrictedAcces";
+import Loading from "./Utils/Loading";
+import Toast from "./Utils/Toast";
 
 export default function MainForm() {
   const [nombrePlan, setNombrePlan] = useState("");
@@ -9,13 +14,13 @@ export default function MainForm() {
   const [priority, setPriority] = useState([]);
   const [postponed, setPostponed] = useState([]);
   const [maxCredits, setMaxCredits] = useState(32);
-  const [loadingPlan, setLoadingPlan] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
   const navigate = useNavigate();
   const [disponibles, setDisponibles] = useState([]);
+  const [type, setType] = useState("");
 
   const token = localStorage.getItem("token");
 
@@ -77,21 +82,12 @@ export default function MainForm() {
   fetchData();
 }, [token]);
 
-  
-
-  const handleLogout = () => {
-    localStorage.removeItem("token");
-    localStorage.removeItem("isAdmin");
-    localStorage.removeItem("rol");
-    navigate('/');
-  };
-
 
   //Se hace con metodo post para poder enviar los ramos postpuestos y priorizados.
   //no es redundante tener catch y ademas el if, pq con el if estas recibiendo el error de si ya existe la planificacion
   //con el catch recibes cualquier error.
   const generarPlanificacion = async () => {
-    setLoadingPlan(true);
+    setLoading(true);
     setErrorMsg("");
 
     try {
@@ -122,8 +118,9 @@ export default function MainForm() {
     } catch (err) {
       console.error(err);
       setErrorMsg(err.message);
+      setType('error')
     } finally {
-      setLoadingPlan(false);
+      setLoading(false);
     }
   };
 
@@ -146,84 +143,36 @@ export default function MainForm() {
     if (to === "postponed") addTo(postponed, setPostponed);
   };
 
-  
-  if (loadingPlan) {
-    return (
-    <div className="fixed inset-0 flex flex-col items-center justify-center bg-white/70 z-50">
-      <Spinner size="xl" />
-      <p className="mt-4 text-blue-700 font-semibold text-lg">Generando plan...</p>
-    </div>
-    );
-  }
 
-  if (loading) {
-    return (
-      <div className="flex justify-center items-center h-screen">
-        <Spinner size="xl" />
-      </div>
-    );
-  }
 
-  if (error) {
-    return (
-      <div className="max-w-md mx-auto mt-10">
-        <Alert color="failure">{error}</Alert>
-      </div>
-    );
-  }
+
+
+
+  if (loading) return <Loading mensaje="Cargando pestaña"/>;
+
+  if (error) return <RestrictedAcces error={''}/>;
+
 
   return (
+
+    <div>
     <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white text-slate-800">
-      {errorMsg && <Alert color="failure">{errorMsg}</Alert>}
-
       {/* Header */}
-      <header className="flex items-center justify-between px-4 py-3 bg-white shadow-md sticky top-0 z-30">
-        <div className="flex items-center gap-3">
-          <button
-            aria-label="menu"
-            onClick={() => setSidebarOpen(true)}
-            className="p-2 rounded-lg hover:bg-blue-100 transition"
-          >
-            {/* Hamburger */}
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16" />
-            </svg>
-          </button>
-
-          <h1 className="text-xl font-semibold text-blue-700">Planificación de Ramos</h1>
-        </div>
-
-        <div className="hidden md:flex items-center gap-4">
-        </div>
-      </header>
+      <Header setMenuOpen={setMenuOpen}/>
 
       {/* Sidebar overlay */}
-      {sidebarOpen && (
-        <div className="fixed inset-0 z-40">
-          <div className="absolute inset-0 bg-black/30" onClick={() => setSidebarOpen(false)} />
-          <aside className="absolute left-0 top-0 bottom-0 w-72 bg-white shadow-2xl p-6 flex flex-col">
-            <div>
-              <h2 className="text-lg font-bold text-blue-700 mb-4">Menú</h2>
-              <p className="text-sm text-slate-500 mb-6">Opciones rápidas</p>
-            </div>
-
-            <div className="flex flex-col gap-3">
+      {menuOpen && (
+        <SideMenu setMenuOpen={setMenuOpen} >
               <Button color="purple" onClick={() => navigate('/Home')}>
                 Volver
               </Button>
 
-              <Button color="light" onClick={() => setSidebarOpen(false)}>
+              <Button color="light" onClick={() => setMenuOpen(false)}>
                 Cerrar
               </Button>
-            </div>
-
-            {/* Botón de logout abajo */}
-            <Button color="red" onClick={() => handleLogout()} className="mt-auto">
-              Cerrar Sesión
-            </Button>
-          </aside>
-        </div>
+        </SideMenu>
       )}
+
 
 
       {/* Main content */}
@@ -380,6 +329,9 @@ export default function MainForm() {
               </div>
             </div>
           </Card>
+        {errorMsg && 
+        <Toast message={errorMsg} type={type}/>
+        }
         </section>
 
         {/* Footer actions */}
@@ -387,6 +339,7 @@ export default function MainForm() {
           <Button color="purple" onClick={() => generarPlanificacion()}>Guardar planificación</Button>
         </div>
       </main>
+      </div>
       <Footer/>
     </div>
   );

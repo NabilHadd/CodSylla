@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState, useCallback } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
+import Loading from "./Utils/Loading";
 
 function AdminHome() {
   const [auditLog, setAuditLog] = useState([]);
@@ -206,11 +207,7 @@ function AdminHome() {
   // Pantalla de carga (mientras resolvemos si hay token o no)
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-slate-50">
-        <p className="text-xl text-slate-600 animate-pulse">
-          Cargando datos del administrador...
-        </p>
-      </div>
+      <Loading mensaje="Cargando panel administrador"/>
     );
   }
 

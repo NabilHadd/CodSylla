@@ -1,22 +1,32 @@
-import { useNavigate } from "react-router-dom";
+//hooks
 import React, { useEffect, useState } from "react";
-import { Button,Spinner} from "flowbite-react";
-import Header from "./Header";
-import SideMenu from "./SideMenu";
+import { useAuth } from "../hooks/useAuth";
+import { useNavigate } from "react-router-dom";
+
+//styles
+import { Button} from "flowbite-react";
+
+//components
+import Header from "./Utils/Header";
+import SideMenu from "./Utils/SideMenu";
 import Plan from "./Planificacion/PLan";
-import Footer from "./Footer";
+import Footer from "./Utils/Footer";
+import RestrictedAcces from "./Utils/RestrictedAcces";
+import Loading from "./Utils/Loading";
+
 
 
 function Home() {
-  const [planificacion, setPlanificacion] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [menuOpen, setMenuOpen] = useState(false);
   const [semestreActual, setSemestreActual] = useState(null)
+  const [planificacion, setPlanificacion] = useState([]);
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const {getToken} = useAuth();
+  const [error, setError] = useState(null);
   const navigate = useNavigate();
+  const token = getToken()
 
   useEffect(() => {
-    const token = localStorage.getItem("token");
 
     fetch("http://localhost:3001/planification/obtener/1", {
       headers: {
@@ -37,6 +47,7 @@ function Home() {
         setLoading(false);
       });
       
+
       fetch("http://localhost:3001/get-all/semestre", {
         headers: {
           Authorization: `Bearer ${token}`,
@@ -56,47 +67,13 @@ function Home() {
           setLoading(false);
         });
 
-  }, []);
+  }, [token]);
+
+  
+  if (loading) return <Loading mensaje="Cargando Home"/>
 
 
-
-  const handleLogout = () => {
-    localStorage.removeItem("token");
-    localStorage.removeItem("isAdmin");
-    localStorage.removeItem("rol");
-    navigate('/');
-  };
-
-  if (loading) {
-    return (
-      <div className="flex justify-center items-center h-screen">
-        <Spinner size="xl" />
-      </div>
-    );
-  }
-
-
-  if (error)
-    return (
-      <div className="flex items-center justify-center min-h-screen bg-slate-50 px-6">
-        <div className="max-w-md w-full bg-white rounded-2xl shadow-xl border border-slate-200 p-8 text-center space-y-6">
-          <div className="text-5xl">🚫</div>
-          <h1 className="text-2xl font-semibold text-slate-900">
-            Acceso restringido
-          </h1>
-          <p className="text-slate-600">
-            No podemos mostrar esta sección en este momento. {error}
-          </p>
-          <button
-            onClick={handleLogout}
-            className="inline-flex items-center justify-center w-full bg-blue-600 hover:bg-blue-700 text-white font-medium px-4 py-2 rounded-xl shadow transition-colors"
-          >
-            Volver a iniciar sesión
-          </button>
-        </div>
-      </div>
-    );
-
+  if (error) return <RestrictedAcces error={error}/>
 
 
   return (
@@ -108,7 +85,7 @@ function Home() {
 
         {/* Sidebar overlay */}
         {menuOpen && (
-          <SideMenu setMenuOpen={setMenuOpen} handleLogout={handleLogout}>
+          <SideMenu setMenuOpen={setMenuOpen} >
             <Button color="blue" onClick={() => navigate('/MainForm')}>
               Generar Planificación
             </Button>

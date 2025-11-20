@@ -1,49 +1,57 @@
 import React, { useState } from "react";
+import { Label, TextInput, Button } from "flowbite-react";
 import axios from "axios";
 import logo from "../assets/codsylla.png";
 import { useNavigate } from "react-router-dom";
+import Toast from "./Utils/Toast";
+import Loading from "./Utils/Loading";
+import { useAuth } from "../hooks/useAuth";
 
 function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [mensaje, setMensaje] = useState("");
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+  const {setToken} = useAuth();
 
   const handleSubmit = async (e) => {
+    setLoading(true);
     e.preventDefault();
-
+    
     try {
+
       const res = await axios.post("http://localhost:3001/auth/login", {
         email,
         password,
       });
 
-
       const { success, admin, token, rol } = res.data;
 
       if(!success){
-        setMensaje("❌ Error: " + (res.data.message || "Login fallido"));
+        setTimeout(() => setMensaje("Error: " + (res.data.message || "Login fallido")), 0);
+        setLoading(false);
         return;
       }
 
-      localStorage.setItem('token', token);
-      localStorage.setItem('isAdmin', admin ? 'true' : 'false');
-      if (rol) {
-        localStorage.setItem('rol', rol);
-      } else {
-        localStorage.removeItem('rol');
-      }
-
+      setToken({admin, token, rol});
       admin ? navigate('/AdminHome') : navigate('/home')
 
     } catch (err) {
-      setMensaje("❌ Error: " + (err.response?.data?.message || err.message));
+      setTimeout(() => setMensaje("Error: " + (err.response?.data?.message || err.message)), 0);
+      setLoading(false)
     }
     
   };
 
+
+
+  if (loading) return <Loading mensaje="Autenticando"/>
+
+
+
   return (
-    <div className="bg-gradient-to-br from-blue-500 via-blue-600 to-blue-800 min-h-screen flex flex-col items-center justify-center relative overflow-hidden">
+    <div className="bg-gradient-to-br from-blue-500 via-blue-500 to-blue-900 min-h-screen flex flex-col items-center justify-center relative overflow-hidden">
       {/* Efecto decorativo de fondo */}
       <div className="absolute w-72 h-72 bg-blue-400/30 rounded-full blur-3xl top-10 left-20 animate-pulse"></div>
       <div className="absolute w-96 h-96 bg-blue-300/20 rounded-full blur-3xl bottom-10 right-20 animate-pulse"></div>
@@ -71,51 +79,45 @@ function Login() {
 
         {/* Formulario */}
         <form onSubmit={handleSubmit} className="space-y-5">
+
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Email
-            </label>
-            <input
+            <Label htmlFor="email" value="Correo electrónico" />
+            <TextInput
+              id="email"
               type="email"
+              placeholder="Ingresa tu correo"
+              required
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              required
-              className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:outline-none"
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Contraseña
-            </label>
-            <input
+            <Label htmlFor="password" value="Contraseña" />
+            <TextInput
+              id="password"
               type="password"
+              placeholder="Ingresa tu contraseña"
+              required
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              required
-              className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:outline-none"
             />
           </div>
 
-          <button
+          <Button
             type="submit"
             className="w-full py-3 bg-gradient-to-r from-blue-100 to-blue-200 border-2 border-blue-700 text-blue-700 font-bold rounded-xl hover:from-blue-200 hover:to-blue-300 hover:shadow-lg transition-all duration-300"
           >
             Iniciar sesión
-          </button>
-        </form>
+          </Button>
 
+        </form>
+      </div>
+        
         {/* Mensaje */}
         {mensaje && (
-          <p
-            className={`mt-5 text-center font-medium ${
-              mensaje.startsWith("✅") ? "text-green-600" : "text-red-600"
-            }`}
-          >
-            {mensaje}
-          </p>
+          <Toast message={mensaje} type="error"/>
         )}
-      </div>
     </div>
   );
 
