@@ -2,6 +2,7 @@
 import React, { useEffect, useState } from "react";
 import { useAuth } from "../hooks/useAuth";
 import { useNavigate } from "react-router-dom";
+import { useApi } from "../hooks/useApi";
 
 //styles
 import { Button} from "flowbite-react";
@@ -25,10 +26,11 @@ function Home() {
   const [error, setError] = useState(null);
   const navigate = useNavigate();
   const token = getToken()
+  const {getBaseUrl} = useApi() 
 
   useEffect(() => {
 
-    fetch("http://localhost:3001/planification/obtener/1", {
+    fetch(`${getBaseUrl()}/planification/obtener/1`, {
       headers: {
         Authorization: `Bearer ${token}`,
         "Content-Type": "application/json",
@@ -48,7 +50,7 @@ function Home() {
       });
       
 
-      fetch("http://localhost:3001/get-all/semestre", {
+      fetch(`${getBaseUrl()}/get-all/semestre`, {
         headers: {
           Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",

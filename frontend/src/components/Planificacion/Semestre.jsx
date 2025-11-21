@@ -50,15 +50,14 @@ export default function Semestre({sem, semActual}){
         </button>
     
         {openSemestres[sem.sem] && (
-            <div className={`p-4 bg-${getSemestreColor(sem.sem)}-50 grid grid-cols-3 gap-4 items-stretch`}>
-                {sem.ramos.map((ramo, j) => (
-                    <div
-                        key={j}
-                    >
-                        <Ramo r={ramo}/>
-                    </div>
-                ))}
+        <div className={`p-4 bg-${getSemestreColor(sem.sem)}-50 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 items-stretch`}>
+            {sem.ramos.map((ramo, j) => (
+            <div key={j}>
+                <Ramo r={ramo} />
             </div>
+            ))}
+        </div>
         )}
+
     </div>)
 }

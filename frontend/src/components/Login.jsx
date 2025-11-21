@@ -6,6 +6,7 @@ import { useNavigate } from "react-router-dom";
 import Toast from "./Utils/Toast";
 import Loading from "./Utils/Loading";
 import { useAuth } from "../hooks/useAuth";
+import { useApi } from "../hooks/useApi";
 
 function Login() {
   const [email, setEmail] = useState("");
@@ -14,6 +15,7 @@ function Login() {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
   const {setToken} = useAuth();
+  const {getBaseUrl} = useApi();
 
   const handleSubmit = async (e) => {
     setLoading(true);
@@ -21,7 +23,7 @@ function Login() {
     
     try {
 
-      const res = await axios.post("http://localhost:3001/auth/login", {
+      const res = await axios.post(`${getBaseUrl()}/auth/login`, {
         email,
         password,
       });

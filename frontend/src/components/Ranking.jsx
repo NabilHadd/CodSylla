@@ -1,15 +1,11 @@
-import { useNavigate } from "react-router-dom";
 import React, { useEffect, useState } from "react";
+import {Header, SideMenu, Footer, RestrictedAcces, Loading, Toast} from "./Utils/index"
+import { useNavigate } from "react-router-dom";
 import { Button } from "flowbite-react";
-import { HiChevronUp, HiChevronDown, HiX} from "react-icons/hi";
-import Plan from "./Planificacion/PLan";
-import Header from "./Utils/Header";
-import SideMenu from "./Utils/SideMenu";
-import Footer from "./Utils/Footer";
-import RestrictedAcces from "./Utils/RestrictedAcces";
-import Loading from "./Utils/Loading";
-import Toast from "./Utils/Toast";
 import RankingBar from "./RankingBar";
+import { useApi } from "../hooks/useApi";
+import axios from "axios";
+import { useAuth } from "../hooks/useAuth";
 
 function Home() {
   const [loading, setLoading] = useState(true);
@@ -23,49 +19,42 @@ function Home() {
   const [planificacion, setPlanificacion] = useState([]);
   const [type, setType] = useState("")
   const navigate = useNavigate();
+  const {getBaseUrl} = useApi();
+  const {getToken} = useAuth();
 
   useEffect(() => {
-    const token = localStorage.getItem("token");
+    const token = getToken()
 
-    fetch("http://localhost:3001/planification/obtener-todo", {
-      headers: {
-        Authorization: `Bearer ${token}`,
-        "Content-Type": "application/json",
-      },
-    })
-      .then((res) => {
-        if (!res.ok) throw new Error("Error al obtener rankings");
-        return res.json();
+      axios.get(`${getBaseUrl()}/planification/obtener-todo`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        }
       })
-      .then((data) => {
-        const ordenados = [...data].sort((a, b) => a.ranking - b.ranking);
+      .then(res => {
+        const ordenados = [...res.data].sort((a, b) => a.ranking - b.ranking);
         setPlanes(ordenados);
         setLoading(false);
       })
-      .catch((err) => {
-        setError(err.message);
+      .catch(error => {
+        setError(error.message);
         setLoading(false);
-      });
+      })
 
-
-    fetch("http://localhost:3001/get-all/semestre", {
-        headers: {
+    axios.get(`${getBaseUrl()}/get-all/semestre`, {
+      headers: {
         Authorization: `Bearer ${token}`,
         "Content-Type": "application/json",
-      },
+        },
     })
-      .then((res) => {
-        if (!res.ok) throw new Error("Error al obtener semestre actual");
-        return res.json();
-      })
-      .then((data) => {
-        setSemestre(data);
+    .then(res => {
+        setSemestre(res.data);
         setLoading(false);
       })
-      .catch((err) => {
-        setError(err.message);
+    .catch(error => {
+        setError(error.message);
         setLoading(false);
-      });
+    })
 
   }, []);
 
@@ -91,7 +80,7 @@ function Home() {
 
     try {
       setLoading(true)
-      const res = await fetch("http://localhost:3001/planification/actualizar-ranking", {
+      const res = await fetch(`${getBaseUrl()}/planification/actualizar-ranking`, {
         method: "POST",
         headers: {
           Authorization: `Bearer ${token}`,
@@ -135,7 +124,7 @@ function Home() {
   const getPLan = async (rank) => {
     const token = localStorage.getItem("token");
 
-    fetch(`http://localhost:3001/planification/obtener/${rank}`, {
+    fetch(`${getBaseUrl()}/planification/obtener/${rank}`, {
       headers: {
         Authorization: `Bearer ${token}`,
         "Content-Type": "application/json",

@@ -7,6 +7,7 @@ import SideMenu from "./Utils/SideMenu";
 import RestrictedAcces from "./Utils/RestrictedAcces";
 import Loading from "./Utils/Loading";
 import Toast from "./Utils/Toast";
+import { useApi } from "../hooks/useApi";
 
 export default function MainForm() {
   const [nombrePlan, setNombrePlan] = useState("");
@@ -21,6 +22,7 @@ export default function MainForm() {
   const navigate = useNavigate();
   const [disponibles, setDisponibles] = useState([]);
   const [type, setType] = useState("");
+  const {getBaseUrl} = useApi();
 
   const token = localStorage.getItem("token");
 
@@ -30,28 +32,35 @@ export default function MainForm() {
   async function fetchData() {
     try {
       // obtener todos los ramos
-      const resRamos = await fetch("http://localhost:3001/get-all/ramos", {
+      const resRamos = await 
+      axios.get(`${getBaseUrl()}/get-all/ramos`,{        
         headers: {
           Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",
         },
       });
-      const dataRamos = await resRamos.json();
-      console.log(dataRamos)
+
+      const dataRamos = resRamos.data;
+
+      console.log(dataRamos);
+
       setRamos(Array.isArray(dataRamos) ? dataRamos : []);
 
-      // obtener aprobados
-      const resAprobados = await fetch("http://localhost:3001/get-all/aprobados", {
+      const resAprobados = await
+      axios.get(`${getBaseUrl()}/get-all/aprobados`, {
         headers: {
           Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",
         },
       });
-      const dataAprobados = await resAprobados.json();
-      console.log(dataAprobados)
+
+      const dataAprobados = resAprobados.data;
+
+      console.log(dataAprobados);
 
       // preparar body para disponibles
-      const pendientes = await dataRamos.map(r => r.codigo);
+      const pendientes = dataRamos.map(r => r.codigo);
+
       console.log(pendientes)
       
       const body = {
@@ -60,19 +69,19 @@ export default function MainForm() {
       };
 
       // obtener disponibles
-      const resDisponibles = await fetch("http://localhost:3001/get-all/disponibles", {
-        method: "POST",
+      const resDisponibles = await
+      axios.post(`${getBaseUrl()}/get-all/disponibles`, {
         headers: {
           Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",
         },
         body: JSON.stringify(body),
       });
+      const dataDisponibles = resDisponibles.data;
 
-      const dataDisponibles = await resDisponibles.json();
       setDisponibles(Array.isArray(dataDisponibles) ? dataDisponibles : []);
-
       setLoading(false);
+
     } catch (err) {
       setError(err.message);
       setLoading(false);
@@ -93,7 +102,7 @@ export default function MainForm() {
     try {
       const token = localStorage.getItem("token");
 
-      const res = await fetch("http://localhost:3001/planification/generar", {
+      const res = await fetch(`${getBaseUrl()}/planification/generar`, {
         method: "POST",
         headers: {
           Authorization: `Bearer ${token}`,
