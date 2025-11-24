@@ -57,6 +57,7 @@ function AdminHome() {
     }
   };
 
+  
   // Tu función, en useCallback para deps del efecto
   const handleLogout = useCallback(() => {
     localStorage.removeItem("token"); // <- EXACTO como pediste
@@ -74,6 +75,8 @@ function AdminHome() {
       }
     }, 0);
   }, [navigate]);
+
+
 
   useEffect(() => {
     if (!token) {
@@ -189,7 +192,6 @@ function AdminHome() {
     setLoading(true);
     setReloadKey((prev) => prev + 1);
   }, []);
-
 
 
   const auditLogRows = useMemo(

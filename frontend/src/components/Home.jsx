@@ -1,19 +1,11 @@
-//hooks
 import React, { useEffect, useState } from "react";
 import { useAuth } from "../hooks/useAuth";
 import { useNavigate } from "react-router-dom";
-import { useApi } from "../hooks/useApi";
-
-//styles
-import { Button} from "flowbite-react";
-
-//components
-import Header from "./Utils/Header";
-import SideMenu from "./Utils/SideMenu";
 import Plan from "./Planificacion/PLan";
-import Footer from "./Utils/Footer";
-import RestrictedAcces from "./Utils/RestrictedAcces";
-import Loading from "./Utils/Loading";
+import { useApi } from "../hooks/useApi";
+import { Button} from "flowbite-react";
+import {Header, SideMenu, Footer, RestrictedAcces, Loading} from "./Utils/index"
+
 
 
 
@@ -22,7 +14,7 @@ function Home() {
   const [planificacion, setPlanificacion] = useState([]);
   const [menuOpen, setMenuOpen] = useState(false);
   const [loading, setLoading] = useState(true);
-  const {getToken} = useAuth();
+  const {getToken, getHeaderToken} = useAuth();
   const [error, setError] = useState(null);
   const navigate = useNavigate();
   const token = getToken()
@@ -30,12 +22,7 @@ function Home() {
 
   useEffect(() => {
 
-    fetch(`${getBaseUrl()}/planification/obtener/1`, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-        "Content-Type": "application/json",
-      },
-    })
+    fetch(`${getBaseUrl()}/planification/obtener/1`, getHeaderToken())
       .then((res) => {
         if (!res.ok) throw new Error("Error al obtener la planificación");
         return res.json();
@@ -50,12 +37,7 @@ function Home() {
       });
       
 
-      fetch(`${getBaseUrl()}/get-all/semestre`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-          },
-        })
+      fetch(`${getBaseUrl()}/get-all/semestre`, getHeaderToken())
         .then((res) => {
           if (!res.ok) throw new Error("Error al obtener semestre actual");
           return res.json();

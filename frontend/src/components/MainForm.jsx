@@ -1,13 +1,9 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button, TextInput, Card, Alert } from "flowbite-react";
-import Footer from "./Utils/Footer";
-import Header from "./Utils/Header"
-import SideMenu from "./Utils/SideMenu";
-import RestrictedAcces from "./Utils/RestrictedAcces";
-import Loading from "./Utils/Loading";
-import Toast from "./Utils/Toast";
+import {Header, SideMenu, Footer, RestrictedAcces, Loading, Toast} from "./Utils/index"
 import { useApi } from "../hooks/useApi";
+import axios from "axios";
 
 export default function MainForm() {
   const [nombrePlan, setNombrePlan] = useState("");
@@ -18,7 +14,7 @@ export default function MainForm() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [menuOpen, setMenuOpen] = useState(false);
-  const [errorMsg, setErrorMsg] = useState("");
+  const [mensaje, setMensaje] = useState("");
   const navigate = useNavigate();
   const [disponibles, setDisponibles] = useState([]);
   const [type, setType] = useState("");
@@ -32,8 +28,8 @@ export default function MainForm() {
   async function fetchData() {
     try {
       // obtener todos los ramos
-      const resRamos = await 
-      axios.get(`${getBaseUrl()}/get-all/ramos`,{        
+      const resRamos = await axios.get(
+        `${getBaseUrl()}/get-all/ramos`,{        
         headers: {
           Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",
@@ -46,8 +42,8 @@ export default function MainForm() {
 
       setRamos(Array.isArray(dataRamos) ? dataRamos : []);
 
-      const resAprobados = await
-      axios.get(`${getBaseUrl()}/get-all/aprobados`, {
+      const resAprobados = await axios.get(
+        `${getBaseUrl()}/get-all/aprobados`, {
         headers: {
           Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",
@@ -69,14 +65,16 @@ export default function MainForm() {
       };
 
       // obtener disponibles
-      const resDisponibles = await
-      axios.post(`${getBaseUrl()}/get-all/disponibles`, {
+      const resDisponibles = await axios.post(
+        `${getBaseUrl()}/get-all/disponibles`,
+        body,
+        {
         headers: {
           Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",
-        },
-        body: JSON.stringify(body),
+        }
       });
+
       const dataDisponibles = resDisponibles.data;
 
       setDisponibles(Array.isArray(dataDisponibles) ? dataDisponibles : []);
@@ -96,41 +94,43 @@ export default function MainForm() {
   //no es redundante tener catch y ademas el if, pq con el if estas recibiendo el error de si ya existe la planificacion
   //con el catch recibes cualquier error.
   const generarPlanificacion = async () => {
+    const token = localStorage.getItem("token");
     setLoading(true);
-    setErrorMsg("");
+    setMensaje("");
 
-    try {
-      const token = localStorage.getItem("token");
-
-      const res = await fetch(`${getBaseUrl()}/planification/generar`, {
-        method: "POST",
+    axios.post(
+      `${getBaseUrl()}/planification/generar`,
+      {
+        nombre: nombrePlan,
+        maxCredits,
+        postponed,
+        priority,
+      },
+      {
         headers: {
           Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          nombre: nombrePlan,
-          maxCredits,
-          postponed,
-          priority,
-        }),
-      });
+        }
+      }
+    )
+    .then(res => {
+      const data = res.data;
 
-      const data = await res.json().catch(() => ({})); // evita error si no hay JSON
-
-      if (!res.ok || !data.success) {
+      if (!data.success) {
         throw new Error(data.error || "Hubo un error al generar la planificación, prueba cambiando el nombre.");
       }
-
-      console.log("Plan generado:", data);
-      navigate("/Home");
-    } catch (err) {
-      console.error(err);
-      setErrorMsg(err.message);
-      setType('error')
-    } finally {
+      setMensaje("Planificación generada sin problemas.");
+      setType("success");
+    })
+    .catch(err => {
+      const msg = err.response?.data?.error || err.message;
+      setMensaje(msg);
+      setType("error");
+    })
+    .finally(() => {
       setLoading(false);
-    }
+    });
+
   };
 
 
@@ -151,10 +151,6 @@ export default function MainForm() {
     if (to === "priority") addTo(priority, setPriority);
     if (to === "postponed") addTo(postponed, setPostponed);
   };
-
-
-
-
 
 
   if (loading) return <Loading mensaje="Cargando pestaña"/>;
@@ -338,8 +334,8 @@ export default function MainForm() {
               </div>
             </div>
           </Card>
-        {errorMsg && 
-        <Toast message={errorMsg} type={type}/>
+        {mensaje && 
+        <Toast message={mensaje} type={type}/>
         }
         </section>
 

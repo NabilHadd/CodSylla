@@ -20,33 +20,23 @@ function Home() {
   const [type, setType] = useState("")
   const navigate = useNavigate();
   const {getBaseUrl} = useApi();
-  const {getToken} = useAuth();
+  const {getToken, getHeaderToken} = useAuth();
 
   useEffect(() => {
     const token = getToken()
 
-      axios.get(`${getBaseUrl()}/planification/obtener-todo`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        }
-      })
-      .then(res => {
-        const ordenados = [...res.data].sort((a, b) => a.ranking - b.ranking);
-        setPlanes(ordenados);
-        setLoading(false);
-      })
-      .catch(error => {
-        setError(error.message);
-        setLoading(false);
-      })
-
-    axios.get(`${getBaseUrl()}/get-all/semestre`, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-        "Content-Type": "application/json",
-        },
+    axios.get(`${getBaseUrl()}/planification/obtener-todo`, getHeaderToken())
+    .then(res => {
+      const ordenados = [...res.data].sort((a, b) => a.ranking - b.ranking);
+      setPlanes(ordenados);
+      setLoading(false);
     })
+    .catch(error => {
+      setError(error.message);
+      setLoading(false);
+    })
+
+    axios.get(`${getBaseUrl()}/get-all/semestre`, getHeaderToken())
     .then(res => {
         setSemestre(res.data);
         setLoading(false);
@@ -57,6 +47,65 @@ function Home() {
     })
 
   }, []);
+
+
+  useEffect(() => {
+    if (mensaje) {
+      const timer = setTimeout(() => setMensaje(""), 5000); // 3 segundos
+      return () => clearTimeout(timer);
+    }
+  }, [mensaje]);
+
+  const handleSave = async () => {
+    const token = localStorage.getItem("token");
+    const body = { planes };
+
+    axios.post(
+      `${getBaseUrl()}/planification/actualizar-ranking`,
+      body,
+      getHeaderToken()
+    )
+      .then(res => {
+        setLoading(false);
+        setMensaje("Rankings actualizados correctamente");
+        setType("success");
+      })
+      .catch(err => {
+        setMensaje("No se pudo guardar el ranking");
+        setType("error");
+        setLoading(false);
+        throw new Error("Error al guardar rankings");
+      });
+
+  };
+
+
+  const getPLan = async (rank) => {
+
+    const token = localStorage.getItem("token");
+    axios.get(
+      `${getBaseUrl()}/planification/obtener/${rank}`, getHeaderToken())
+    .then(res => {
+      setPlanificacion(res.data);
+    })
+    .catch(err => {
+      const msg = err.response?.data?.error || err.message;
+      setError(msg);
+    })
+    .finally(() => {
+      setLoading(false);
+    });
+  }
+  
+  const mostrarPlan = (plan) => {
+    getPLan(plan.ranking)
+    setPlanSelect(plan);
+    setNombrePlan(plan.nombre_plan)
+  }
+
+  const handleCerrar = () => {
+    setPlanSelect(null)
+  }
 
   const moveUp = (index) => {
     if (index === 0) return;
@@ -73,77 +122,6 @@ function Home() {
     newPlanes.forEach((p, i) => (p.ranking = i + 1));
     setPlanes(newPlanes);
   };
-
-  const handleSave = async () => {
-    const token = localStorage.getItem("token");
-    const body = { planes };
-
-    try {
-      setLoading(true)
-      const res = await fetch(`${getBaseUrl()}/planification/actualizar-ranking`, {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(body),
-      });
-      if (!res.ok) throw new Error("Error al guardar rankings");
-      await res.json();
-      setLoading(false)
-      setMensaje("Rankings actualizados correctamente");
-      setType("success")
-    } catch (err) {
-      console.error(err);
-      setLoading(false)
-      setMensaje("No se pudo guardar el ranking");
-      setType("error")
-    }
-  };
-
-  
-  useEffect(() => {
-    if (mensaje) {
-      const timer = setTimeout(() => setMensaje(""), 5000); // 3 segundos
-      return () => clearTimeout(timer);
-    }
-  }, [mensaje]);
-
-
-  
-  const mostrarPlan = (plan) => {
-    getPLan(plan.ranking)
-    setPlanSelect(plan);
-    setNombrePlan(plan.nombre_plan)
-  }
-
-  const handleCerrar = () => {
-    setPlanSelect(null)
-  }
-
-  const getPLan = async (rank) => {
-    const token = localStorage.getItem("token");
-
-    fetch(`${getBaseUrl()}/planification/obtener/${rank}`, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-        "Content-Type": "application/json",
-      },
-    })
-      .then((res) => {
-        if (!res.ok) throw new Error("Error al obtener la planificación");
-        return res.json();
-      })
-      .then((data) => {
-        setPlanificacion(data);
-        setLoading(false);
-      })
-      .catch((err) => {
-        setError(err.message);
-        setLoading(false);
-      });
-
-  }
 
   //despues utilizar esta info para agregar info extra por cada plan del ranking
   //const togglePlan = (key) => {

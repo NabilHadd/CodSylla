@@ -3,8 +3,7 @@ import { Label, TextInput, Button } from "flowbite-react";
 import axios from "axios";
 import logo from "../assets/codsylla.png";
 import { useNavigate } from "react-router-dom";
-import Toast from "./Utils/Toast";
-import Loading from "./Utils/Loading";
+import {Loading, Toast} from "./Utils/index"
 import { useAuth } from "../hooks/useAuth";
 import { useApi } from "../hooks/useApi";
 
