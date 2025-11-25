@@ -5,6 +5,8 @@ import Plan from "./Planificacion/PLan";
 import { useApi } from "../hooks/useApi";
 import { Button} from "flowbite-react";
 import {Header, SideMenu, Footer, RestrictedAcces, Loading} from "./Utils/index"
+import SimulRamos from "./SimulRamos";
+import axios from "axios";
 
 
 
@@ -12,44 +14,45 @@ import {Header, SideMenu, Footer, RestrictedAcces, Loading} from "./Utils/index"
 function Home() {
   const [semestreActual, setSemestreActual] = useState(null)
   const [planificacion, setPlanificacion] = useState([]);
+  const [simulRamos, setSimulRamos] = useState(false);
+  const [ramosActuales, setRamosActuales] = useState([]);
   const [menuOpen, setMenuOpen] = useState(false);
   const [loading, setLoading] = useState(true);
   const {getToken, getHeaderToken} = useAuth();
+  const {getBaseUrl} = useApi();  
   const [error, setError] = useState(null);
   const navigate = useNavigate();
   const token = getToken()
-  const {getBaseUrl} = useApi() 
+  const headerToken = getHeaderToken()
+  const baseUrl = getBaseUrl()
+
 
   useEffect(() => {
 
-    fetch(`${getBaseUrl()}/planification/obtener/1`, getHeaderToken())
-      .then((res) => {
-        if (!res.ok) throw new Error("Error al obtener la planificación");
-        return res.json();
-      })
-      .then((data) => {
-        setPlanificacion(data);
-        setLoading(false);
-      })
-      .catch((err) => {
-        setError(err.message);
-        setLoading(false);
-      });
-      
 
-      fetch(`${getBaseUrl()}/get-all/semestre`, getHeaderToken())
-        .then((res) => {
-          if (!res.ok) throw new Error("Error al obtener semestre actual");
-          return res.json();
-        })
-        .then((data) => {
-          setSemestreActual(data);
-          setLoading(false);
-        })
-        .catch((err) => {
-          setError(err.message);
-          setLoading(false);
-        });
+    axios.get(`${baseUrl}/planification/obtener/1`, headerToken)
+    .then(res => {
+      setPlanificacion(res.data);
+    })
+    .catch(err => {
+      setError(err.message);
+    });;
+
+    axios.get(`${baseUrl}/get-all/semestre`, headerToken)
+    .then(res => {
+      setSemestreActual(res.data);
+    }).catch(err => {
+      setError(err.message);
+    });
+
+    axios.get(`${baseUrl}/get-all/ramos-actuales`, headerToken)
+    .then(res => {
+      setRamosActuales(res.data);
+    }).catch(err => {
+      setError(err.message)
+    }).finally(() => {
+      setLoading(false);
+    });
 
   }, [token]);
 
@@ -74,7 +77,7 @@ function Home() {
               Generar Planificación
             </Button>
 
-            <Button color="purple">
+            <Button color="purple" onClick={() => {setMenuOpen(false); setSimulRamos(true)}}>
               Simular Ramos
             </Button>
 
@@ -88,17 +91,24 @@ function Home() {
           </SideMenu>
         )}
 
+        {/* Contenido principal*/}
+        <div className="flex-1 p-6">
+          <h1 className="text-4xl font-bold text-center mb-6 text-blue-800">
+            ¡Hola Alumno!
+          </h1>
 
-          {/* Contenido principal */}
-          <div className="flex-1 p-6">
+          <Plan semestreActual={semestreActual} planificacion={planificacion}/>
 
-            <h1 className="text-4xl font-bold text-center mb-6 text-blue-800">
-              ¡Hola Alumno!
-            </h1>
+          {/* Modal cuando simulRamos = true */}
+          {simulRamos && (
+            <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
+              <div className="bg-white p-6 rounded-lg shadow-xl max-h-[90vh] overflow-y-auto w-full max-w-lg">
+                <SimulRamos ramos={ramosActuales} onClose={() => setSimulRamos(false)} />
+              </div>
+            </div>
+          )}
 
-            <Plan semestreActual={semestreActual} planificacion={planificacion}/>
-
-          </div>
+        </div>
       </div>
       <Footer/>
     </div>

@@ -12,7 +12,6 @@ function Home() {
   const [error, setError] = useState(null);
   const [mensaje, setMensaje] = useState("");
   const [planes, setPlanes] = useState([]);
-  const [nombrePlan, setNombrePlan] = useState([]);
   const [menuOpen, setMenuOpen] = useState(false);
   const [planSelect, setPlanSelect] = useState(null);
   const [semestre, setSemestre] = useState({});
@@ -20,12 +19,13 @@ function Home() {
   const [type, setType] = useState("")
   const navigate = useNavigate();
   const {getBaseUrl} = useApi();
-  const {getToken, getHeaderToken} = useAuth();
+  const {getHeaderToken} = useAuth();
+  const baseUrl = getBaseUrl();
+  const headerToken = getHeaderToken();
 
   useEffect(() => {
-    const token = getToken()
 
-    axios.get(`${getBaseUrl()}/planification/obtener-todo`, getHeaderToken())
+    axios.get(`${baseUrl}/planification/obtener-todo`, headerToken)
     .then(res => {
       const ordenados = [...res.data].sort((a, b) => a.ranking - b.ranking);
       setPlanes(ordenados);
@@ -36,7 +36,7 @@ function Home() {
       setLoading(false);
     })
 
-    axios.get(`${getBaseUrl()}/get-all/semestre`, getHeaderToken())
+    axios.get(`${baseUrl}/get-all/semestre`, headerToken)
     .then(res => {
         setSemestre(res.data);
         setLoading(false);
@@ -57,13 +57,11 @@ function Home() {
   }, [mensaje]);
 
   const handleSave = async () => {
-    const token = localStorage.getItem("token");
-    const body = { planes };
 
     axios.post(
-      `${getBaseUrl()}/planification/actualizar-ranking`,
-      body,
-      getHeaderToken()
+      `${baseUrl}/planification/actualizar-ranking`,
+      {planes},
+      headerToken
     )
       .then(res => {
         setLoading(false);
@@ -82,9 +80,8 @@ function Home() {
 
   const getPLan = async (rank) => {
 
-    const token = localStorage.getItem("token");
     axios.get(
-      `${getBaseUrl()}/planification/obtener/${rank}`, getHeaderToken())
+      `${baseUrl}/planification/obtener/${rank}`, headerToken)
     .then(res => {
       setPlanificacion(res.data);
     })
@@ -100,7 +97,6 @@ function Home() {
   const mostrarPlan = (plan) => {
     getPLan(plan.ranking)
     setPlanSelect(plan);
-    setNombrePlan(plan.nombre_plan)
   }
 
   const handleCerrar = () => {

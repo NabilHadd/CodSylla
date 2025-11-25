@@ -6,6 +6,18 @@ import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 export class GetAllController {
   constructor(private readonly getAllService: GetAllService) {}
 
+
+@UseGuards(JwtAuthGuard)
+@Post('actualizar-estado-multiple')
+async actualizarMultiples(@Req() req, @Body() body) {
+  const rut = req.user.rut;
+
+  // body.ramos = [ { codigo_ramo, sem_cursado, estado } ]
+
+  return this.getAllService.actualizarMultiples(rut, body.ramos);
+}
+
+
   
   @UseGuards(JwtAuthGuard)
   @Get('ramos')
@@ -35,15 +47,38 @@ export class GetAllController {
 
   
   @UseGuards(JwtAuthGuard)
-  @Post('disponibles')
-  async obtenerPendientes(
-    @Req() req,
-    @Body() body: { pendientes: string[]; aprobados: string[] }
-  ) {
-    const { pendientes, aprobados } = body;
+  @Get('disponibles')
+  async obtenerPendientes(@Req() req) {
+    const rut = req.user.rut;
+    const carrera = req.user.carreras[0]; // primera carrera del array
+
+    const body = {
+      rut: rut,
+      carrera: {
+          codigo: carrera.codigo,
+          catalogo: carrera.catalogo,
+      }
+
+    };
+
+    const resPendientes =  await this.getAllService.getRamos(body);
+    const pendientes = resPendientes.map(x => x.codigo)
+    const resAprobados = await this.getAllService.getRamosAprobados(req.user.rut);
+    const aprobados = resAprobados.map(a => a.codigo_ramo)
 
     return this.getAllService.getDisponibles(pendientes, aprobados);
   }
+
+    
+  @UseGuards(JwtAuthGuard)
+  @Get('ramos-actuales')
+  async obtenerRamosActuales(
+    @Req() req,
+  ) {
+    const rut = req.user.rut;
+    return await this.getAllService.getRamosActuales(rut);
+  }
+
 
   @Get('semestre')
   async getSemestreActual() {

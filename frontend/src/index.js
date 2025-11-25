@@ -9,6 +9,7 @@ import Ranking from "./components/Ranking"
 import "flowbite";
 
 import "./index.css";
+import SimulRamos from "./components/SimulRamos";
 
 const root = ReactDOM.createRoot(document.getElementById("root"));
 root.render(
@@ -19,6 +20,7 @@ root.render(
       <Route path="/AdminHome" element={<AdminHome />} />
       <Route path="/MainForm" element={<MainForm />} />
       <Route path="/Ranking" element={<Ranking />} />
+      <Route path="/SimulRamos" element={<SimulRamos />}/>
     </Routes>
   </BrowserRouter>
 );

@@ -37,6 +37,7 @@ export class GetAllService {
 
         return ramosConNombre;
     }
+    
 
     async getCarreras(){
       const carreras = this.prisma.carrera.findMany()
@@ -92,8 +93,18 @@ export class GetAllService {
             },
         });
 
-        return ramosActuales;
+        const ramosConNombre = await Promise.all(
+            ramosActuales.map(async (x) => ({
+                nombre: await this.getNombreRamo(x.codigo_ramo),
+                codigo: x.codigo_ramo,
+                estado: x.estado
+            }))
+        );
+
+        return ramosConNombre;
     }
+
+
 
     //trae devuelta los codigos de preramo de un ramo
     async getPreramosCodes(codigo_ramo: string): Promise<string[]> {
@@ -169,5 +180,26 @@ export class GetAllService {
         else return (anio + 1) * 100 + 10; // pasar al primer semestre del año siguiente
       }
 
-      
+
+async actualizarMultiples(rut: string, ramos: any[]) {
+  const sem = await this.getSemestreActual();
+  const operaciones = ramos.map(r => 
+    this.prisma.historial_academico.update({
+      where: {
+        rut_alumno_codigo_ramo_sem_cursado: {
+          rut_alumno: rut,
+          codigo_ramo: r.codigo_ramo,
+          sem_cursado: String(sem)
+        },
+      },
+      data: {
+        estado: r.estado,
+      },
+    })
+  );
+
+  return Promise.all(operaciones);
+}
+
+        
 }

@@ -4,6 +4,8 @@ import { Button, TextInput, Card, Alert } from "flowbite-react";
 import {Header, SideMenu, Footer, RestrictedAcces, Loading, Toast} from "./Utils/index"
 import { useApi } from "../hooks/useApi";
 import axios from "axios";
+import RamoForm from "./Form/RamoForm";
+import { useAuth } from "../hooks/useAuth";
 
 export default function MainForm() {
   const [nombrePlan, setNombrePlan] = useState("");
@@ -19,8 +21,11 @@ export default function MainForm() {
   const [disponibles, setDisponibles] = useState([]);
   const [type, setType] = useState("");
   const {getBaseUrl} = useApi();
+  const {getHeaderToken, getToken} = useAuth();
 
-  const token = localStorage.getItem("token");
+  const baseUrl = getBaseUrl();
+  const headerToken = getHeaderToken()
+  const token = getToken()
 
   useEffect(() => {
 
@@ -28,13 +33,7 @@ export default function MainForm() {
   async function fetchData() {
     try {
       // obtener todos los ramos
-      const resRamos = await axios.get(
-        `${getBaseUrl()}/get-all/ramos`,{        
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-      });
+      const resRamos = await axios.get(`${baseUrl}/get-all/ramos`, headerToken);
 
       const dataRamos = resRamos.data;
 
@@ -42,38 +41,11 @@ export default function MainForm() {
 
       setRamos(Array.isArray(dataRamos) ? dataRamos : []);
 
-      const resAprobados = await axios.get(
-        `${getBaseUrl()}/get-all/aprobados`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-      });
-
-      const dataAprobados = resAprobados.data;
-
-      console.log(dataAprobados);
-
-      // preparar body para disponibles
-      const pendientes = dataRamos.map(r => r.codigo);
-
-      console.log(pendientes)
-      
-      const body = {
-        pendientes,
-        aprobados: dataAprobados.map(a => a.codigo_ramo),
-      };
-
       // obtener disponibles
-      const resDisponibles = await axios.post(
-        `${getBaseUrl()}/get-all/disponibles`,
-        body,
-        {
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        }
-      });
+      const resDisponibles = await axios.get(
+        `${baseUrl}/get-all/disponibles`,
+        headerToken
+      );
 
       const dataDisponibles = resDisponibles.data;
 
@@ -99,19 +71,14 @@ export default function MainForm() {
     setMensaje("");
 
     axios.post(
-      `${getBaseUrl()}/planification/generar`,
+      `${baseUrl}/planification/generar`,
       {
         nombre: nombrePlan,
         maxCredits,
         postponed,
         priority,
       },
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        }
-      }
+      headerToken
     )
     .then(res => {
       const data = res.data;
@@ -237,31 +204,19 @@ export default function MainForm() {
               No debes postergar todos los ramos disponibles para el próximo semestre. De lo contrario no te permitira continuar
             </Alert>
 
+
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+
               {ramos.length === 0 && <div className="col-span-full text-slate-500">No hay ramos disponibles</div>}
 
               {ramos.map((r) => (
-                <article
-                  key={r.codigo}
-                  className="p-4 bg-blue-50/70 rounded-xl shadow-md hover:scale-[1.01] transition transform"
-                >
-                  <div className="flex justify-between items-start">
-                    <div>
-                      <h3 className="font-semibold text-sm text-blue-800">{r.nombre}</h3>
-                      <div className="text-xs text-slate-500">{r.codigo}</div>
-                      {r.creditos !== undefined && (
-                        <div className="text-xs text-slate-500 mt-1">{r.creditos} créditos</div>
-                      )}
-                    </div>
-
-                    <div className="flex flex-col gap-2">
+                  <RamoForm ramo={r}>
                       <button
                         onClick={() => moveCourse(r, "ramos", "priority")}
                         className="px-3 py-1 rounded-lg text-sm font-medium bg-emerald-100 text-emerald-700 hover:brightness-95"
                       >
                         Priorizar
                       </button>
-
                       {/* Mostrar botón Postergar solo si el ramo está en los disponibles */}
                       {disponibles.includes(r.codigo) && (
                         <button
@@ -271,13 +226,15 @@ export default function MainForm() {
                           Postergar
                         </button>
                       )}
-                    </div>
-                  </div>
-                </article>
+                  </RamoForm>
               ))}
+
             </div>
           </Card>
         </section>
+
+
+
 
         {/* Priority & Postponed side-by-side */}
         <section className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -292,17 +249,11 @@ export default function MainForm() {
 
               <div className="grid grid-cols-1 gap-3">
                 {priority.map((r) => (
-                  <div key={r.codigo} className="p-3 bg-emerald-50 rounded-lg shadow-sm flex items-center justify-between">
-                    <div>
-                      <div className="font-medium text-sm text-emerald-800">{r.nombre}</div>
-                      <div className="text-xs text-slate-400">{r.codigo}</div>
-                    </div>
-                    <div>
+                  <RamoForm ramo={r}>
                       <button onClick={() => moveCourse(r, "priority", "ramos")} className="px-3 py-1 rounded-md text-sm bg-white border border-emerald-200">
                         Volver
                       </button>
-                    </div>
-                  </div>
+                  </RamoForm>
                 ))}
               </div>
             </div>
@@ -319,21 +270,16 @@ export default function MainForm() {
 
               <div className="grid grid-cols-1 gap-3">
                 {postponed.map((r) => (
-                  <div key={r.codigo} className="p-3 bg-rose-50 rounded-lg shadow-sm flex items-center justify-between">
-                    <div>
-                      <div className="font-medium text-sm text-rose-800">{r.nombre}</div>
-                      <div className="text-xs text-slate-400">{r.codigo}</div>
-                    </div>
-                    <div>
+                  <RamoForm ramo={r}>
                       <button onClick={() => moveCourse(r, "postponed", "ramos")} className="px-3 py-1 rounded-md text-sm bg-white border border-rose-200">
                         Volver
                       </button>
-                    </div>
-                  </div>
+                  </RamoForm>
                 ))}
               </div>
             </div>
           </Card>
+
         {mensaje && 
         <Toast message={mensaje} type={type}/>
         }
