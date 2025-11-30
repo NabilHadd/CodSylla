@@ -45,7 +45,7 @@ function Home() {
       setError(err.message);
     });
 
-    axios.get(`${baseUrl}/get-all/ramos-actuales`, headerToken)
+    axios.get(`${baseUrl}/ramo/ramos-actuales`, headerToken)
     .then(res => {
       setRamosActuales(res.data);
     }).catch(err => {
@@ -54,7 +54,7 @@ function Home() {
       setLoading(false);
     });
 
-  }, [token]);
+  }, [token, simulRamos]);
 
   
   if (loading) return <Loading mensaje="Cargando Home"/>
@@ -112,9 +112,6 @@ function Home() {
       </div>
       <Footer/>
     </div>
-
-    
-    
   );
 }
 

@@ -1,17 +1,23 @@
 import { Module } from '@nestjs/common';
 import { GetAllService } from './get-all.service';
 import { GetAllController } from './get-all.controller';
-import { PrismaService } from 'src/prisma/prisma.service';
 import { JwtModule } from '@nestjs/jwt';
+import { PreramosRepository } from 'src/persistence/preramos.repository';
+import { PersistenceModule } from 'src/persistence/persistence.module';
+import { PrismaService } from 'src/prisma/prisma.service';
+import { RamoService } from 'src/ramo/ramo.service';
 
 @Module({
   imports: [
-    JwtModule
+    JwtModule,
+    PersistenceModule
   ],
   controllers: [GetAllController],
   providers: [
     GetAllService,
-    PrismaService
+    PreramosRepository,
+    PrismaService,
+    RamoService
   ],
   exports: [
     GetAllService

@@ -16,12 +16,18 @@ export default function Ramo({r}){
   };
 
     return(
-        <div
-            className={`p-2 rounded-xl h-full shadow ${getRamoColor(
-            r.estado
-            )} `}
-        >
-            <p><strong>{r.nombre}</strong></p>
-            <p>{r.estado.toUpperCase() ?? "Sin estado"}</p>
-        </div>)
+      <div
+        className={`p-2 rounded-xl h-full shadow flex flex-col justify-between ${getRamoColor(r.estado)}`}
+      >
+          <div>
+              <p className="text-sm"><strong>{r.nombre}</strong></p>
+              <p className="text-sm">{r.estado.toUpperCase() ?? "Sin estado"}</p>
+          </div>
+
+          <div className="flex flex-col">
+              <p className="text-xs">{r.codigo?.toUpperCase() ?? "Sin Codigo"}</p>
+              <p className="text-xs">{r.creditos ?? "0"}</p>
+          </div>
+      </div>
+    )
 }

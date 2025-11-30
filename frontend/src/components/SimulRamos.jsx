@@ -44,11 +44,10 @@ export default function SimulRamos({ ramos, onClose }) {
             }));
 
             await axios.post(
-                `${baseUrl}/get-all/actualizar-estado-multiple`,
+                `${baseUrl}/historial/modificar-estado-ramos`,
                 { ramos: payload },
                 headerToken
             );
-
             onClose();
         } catch (err) {
             console.error(err);

@@ -1,11 +1,13 @@
 import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import { GetAllService } from 'src/get-all/get-all.service';
+import { RamoRepository } from 'src/persistence/ramo.repository';
 import { PrismaService } from 'src/prisma/prisma.service';
 
 @Injectable()
 export class AdminService {
   constructor(private readonly prisma: PrismaService,
-              private readonly getAll: GetAllService
+              private readonly getAll: GetAllService,
+              private readonly ramoRepo: RamoRepository,
   ) {}
 
   async getAuditLog() {
@@ -87,27 +89,13 @@ export class AdminService {
       return arr.filter(x => x === a).length
     };
 
-    //linea de testeo
-    const test = 
-    [
-      "UNFE-10001",
-      "UNFE-10001",
-      "UNFE-10001",
-      "ECIN-00362",
-      "UNFV-02002",
-      "ECIN-00361",
-      "ECIN-00360",
-      "DCCB-00341",
-      "UNFP-40001"
-    ]
-
 
     const auditRamos = await Promise.all(
       [...new Set(ramosNextSem)].map(async (a: string) => ({
         codigo_ramo: a,
-        nombre: await this.getAll.getNombreRamo(a),
+        nombre: await this.ramoRepo.findNombreRamo(a),
         count: contar(ramosNextSem, a),
-        carrera: await this.getAll.getCarreraRamo(a),
+        carrera: await this.ramoRepo.findCarreraByRamo(a),
       }))
     );
     //const auditRamos = [...new Set(test)].map(a => ({codigo_ramo: a, nombre: this.getAll.getNombreRamo(a), count: contar(test, a)}))
