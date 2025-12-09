@@ -48,7 +48,7 @@ export default function SimulRamos({ ramos, onClose }) {
                 { ramos: payload },
                 headerToken
             );
-
+            console.log('hola')
             onClose();
         } catch (err) {
             console.error(err);
