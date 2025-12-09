@@ -70,7 +70,7 @@ const getRankingColor = (rank) => {
           return (
             <div
               key={i}
-              className={`rounded-xl shadow-md border ${getRankingColor(
+              className={`mb-4 rounded-xl shadow-md border ${getRankingColor(
                 plan.ranking
               )} p-4 flex items-center justify-between transition`}
             >

@@ -26,7 +26,6 @@ export default function RamoForm({ ramo, children, color }) {
 
   return (
     <article
-      key={ramo.codigo}
       className={`
         p-4 
         rounded-xl 

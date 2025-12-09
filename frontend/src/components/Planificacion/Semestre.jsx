@@ -44,7 +44,7 @@ export default function Semestre({sem, semActual}){
     >
         <button
         onClick={() => toggleSemestre(sem.sem)}
-        className={`w-full text-left p-4 bg-${getSemestreColor(sem.sem)}-200 hover:bg-${getSemestreColor(sem.sem)}-400 transition-colors font-semibold text-lg`}
+        className={`w-full text-left p-4 bg-${getSemestreColor(sem.sem)}-100 hover:bg-${getSemestreColor(sem.sem)}-400 text-blue-900 transition-colors font-semibold text-lg`}
         >
         {formatSemestre(sem.sem)}
         </button>

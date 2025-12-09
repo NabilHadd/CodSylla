@@ -33,7 +33,7 @@ export default function MainForm() {
   async function fetchData() {
     try {
       // obtener todos los ramos
-      const resRamos = await axios.get(`${baseUrl}/get-all/ramos`, headerToken);
+      const resRamos = await axios.get(`${baseUrl}/ramo/ramos-pendientes`, headerToken);
 
       const dataRamos = resRamos.data;
 
@@ -210,7 +210,7 @@ export default function MainForm() {
               {ramos.length === 0 && <div className="col-span-full text-slate-500">No hay ramos disponibles</div>}
 
               {ramos.map((r) => (
-                  <RamoForm ramo={r}>
+                  <RamoForm key={r.codigo} ramo={r}>
                       <button
                         onClick={() => moveCourse(r, "ramos", "priority")}
                         className="px-3 py-1 rounded-lg text-sm font-medium bg-emerald-100 text-emerald-700 hover:brightness-95"
@@ -249,7 +249,7 @@ export default function MainForm() {
 
               <div className="grid grid-cols-1 gap-3">
                 {priority.map((r) => (
-                  <RamoForm ramo={r}>
+                  <RamoForm key={r.codigo} ramo={r}>
                       <button onClick={() => moveCourse(r, "priority", "ramos")} className="px-3 py-1 rounded-md text-sm bg-white border border-emerald-200">
                         Volver
                       </button>
@@ -270,7 +270,7 @@ export default function MainForm() {
 
               <div className="grid grid-cols-1 gap-3">
                 {postponed.map((r) => (
-                  <RamoForm ramo={r}>
+                  <RamoForm key={r.codigo} ramo={r}>
                       <button onClick={() => moveCourse(r, "postponed", "ramos")} className="px-3 py-1 rounded-md text-sm bg-white border border-rose-200">
                         Volver
                       </button>

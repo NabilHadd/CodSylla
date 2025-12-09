@@ -1,14 +1,18 @@
 import { Injectable } from '@nestjs/common';
 import { throwError } from 'rxjs';
 import { GetAllService } from 'src/get-all/get-all.service';
-import { PrismaService } from 'src/prisma/prisma.service';
+import { HistorialRepository } from 'src/persistence/historial.repository';
+import { PlanificationRepository } from 'src/persistence/planification.repository';
+import { RamoRepository } from 'src/persistence/ramo.repository';
 
 @Injectable()
 export class PlanificationService {
 
     //y aca se maneja la logica haciendo uso de rut, debido a que ya sea desde local storage o desde auth, se obtendra
       constructor(
-        private readonly prisma: PrismaService,
+        private readonly planRepo: PlanificationRepository,
+        private readonly ramoRepo: RamoRepository,
+        private readonly histoRepo: HistorialRepository,
         private readonly getAll: GetAllService
       ) {}
 
@@ -22,9 +26,9 @@ export class PlanificationService {
         const MAX_CREDITOS = 32;
         const { rut, carrera} = body;
 
-        const aprobados = await this.getAll.getRamosAprobados(rut)
+        const aprobados = await this.histoRepo.findAprobados(rut)
         const ramos = await this.getRamos(carrera.codigo, carrera.catalogo)
-        const historial = await this.getAll.getHistorial(rut)
+        const historial = await this.histoRepo.findHistorial(rut)
         historial.sort((a, b) => Number(a.sem_cursado) - Number(b.sem_cursado));
 
 
@@ -83,11 +87,7 @@ export class PlanificationService {
           }
 
           // Traer info completa de cada ramo
-          const ramosDetallados = await this.prisma.ramo.findMany({
-            where: { codigo: { in: disponiblesAhora } },
-            select: { codigo: true, nombre: true, creditos: true, nivel: true },
-          });
-
+          const ramosDetallados = await this.ramoRepo.findDisponibles(disponiblesAhora);
           // Ordenar por nivel
           const ordenados = ramosDetallados.sort((a, b) => Number(a.nivel) - Number(b.nivel));
 
@@ -143,9 +143,9 @@ export class PlanificationService {
 
         const fecha_creacion = new Date();
 
-        const aprobados = await this.getAll.getRamosAprobados(rut)
+        const aprobados = await this.histoRepo.findAprobados(rut)
         const ramos = await this.getRamos(carrera.codigo, carrera.catalogo)
-        const historial = await this.getAll.getHistorial(rut)
+        const historial = await this.histoRepo.findHistorial(rut)
 
         historial.sort((a, b) => Number(a.sem_cursado) - Number(b.sem_cursado));
 
@@ -199,10 +199,7 @@ export class PlanificationService {
             throw new Error("No hay ramos disponibles para continuar la planificación.");
 
           // Traer info completa
-          const ramosDetallados = await this.prisma.ramo.findMany({
-            where: { codigo: { in: disponiblesAhora } },
-            select: { codigo: true, nombre: true, creditos: true, nivel: true },
-          });
+          const ramosDetallados = await this.ramoRepo.findDisponibles(disponiblesAhora);
 
           // Ordenar por nivel (o prioridad)
           const ordenados = ramosDetallados.sort((a, b) => {
@@ -278,33 +275,24 @@ export class PlanificationService {
         const {rut, carrera} = body
 
         //se consulta por el plan
-        const plan = await this.prisma.planificacion.findFirst({
-          where: {
-            rut_alumno: rut,
-            ranking: ranking          
-          },
-        });
+        const plan = await this.planRepo.findPlan(rut, ranking); 
 
         if(!plan) throw new Error("Planificación no encontrada");
 
         //se utiliza la llave del plan para acceder a los ramos
-        const ramos_plan = await this.prisma.planificacion_ramo.findMany({
-          where: {
-            rut_alumno: rut,
-            fecha_plan: plan.fecha
-          },
-        })
+        const ramos_plan = await this.planRepo.findRamosPlan(rut, plan.fecha);
 
         const ramos = await Promise.all(
           ramos_plan.map(async (r) => {
-            const ramo = await this.prisma.ramo.findUnique({
-              where: { codigo: r.codigo_ramo },
-            });
+            const ramo = await this.ramoRepo.findRamo(r.codigo_ramo)
 
+            //por que no devolvemos los creditos???????????
             return {
               nombre: ramo?.nombre || '',
               estado: r.estado,
               sem_asignado: r.sem_asignado,
+              codigo: ramo?.codigo,
+              creditos: ramo?.creditos
             };
           })
         );
@@ -328,27 +316,16 @@ export class PlanificationService {
 
 
       async getPlanes(body){
-        const {rut, carrera} = body
-        
-        const planes = await this.prisma.planificacion.findMany({
-          where: {
-            rut_alumno: rut,         
-          },
-        });
+        const planes = await this.planRepo.findAllPlanByRut(body.rut)
 
         return planes
       }
 
 
 
-            //trae devuelta todos los ramos de una carrera
+      //trae devuelta todos los ramos de una carrera
       async getRamos(codigo_syll: string, catalogo: string){
-        return this.prisma.ramos_syllabus.findMany({
-          where: {
-            codigo_syll: codigo_syll,
-            catalogo: catalogo
-          },
-        });
+        return await this.ramoRepo.findAllRamos(codigo_syll, catalogo);
       }
 
 
@@ -391,12 +368,9 @@ export class PlanificationService {
         return semestres;
       }
 
+
       async getMaxRanking(rut: string){
-        const planes = await this.prisma.planificacion.findMany({
-          where: {
-            rut_alumno: rut,
-          },
-        });
+        const planes = await this.planRepo.findAllPlanByRut(rut);
 
         const rankings = planes.map(r => r.ranking)
 
@@ -413,27 +387,21 @@ export class PlanificationService {
         ranking: number,
         fecha: Date
       ) {
-        const existingPlan = await this.prisma.planificacion.findFirst({
-          where: {
-            rut_alumno: rut,
-            nombre_plan: nombre,
-          },
-        });
+        const existingPlan = await this.planRepo.findPlanByName(rut, nombre);
 
         if (existingPlan) {
           throw new Error('Ya existe un plan con ese nombre para este alumno.');
         }
 
-        const plan = await this.prisma.planificacion.create({
-          data: {
+        const plan = await this.planRepo.createPlan(          
+          {
             rut_alumno: rut,
             fecha,
             nombre_plan: nombre,
             sem_plan: semestre,
             ranking,
-          },
-        });
-
+          }
+        )
         return plan;
       }
 
@@ -449,33 +417,18 @@ export class PlanificationService {
 
           if (semestreObj.ramos.length === 0) continue; // evitar llamar createMany con array vacío
 
-          await this.prisma.planificacion_ramo.createMany({
-            data: semestreObj.ramos.map(ramo => ({
-              rut_alumno: rut,
-              fecha_plan: fechaPlan,
-              codigo_ramo: ramo.codigo,
-              sem_asignado: semAsig,
-              estado: ramo.estado || "pendiente",
-            })),
-          });
+          await this.planRepo.fillPlan({rut_alumno: rut, fecha_plan: fechaPlan, infoSemestre: semestreObj})
+
         }
       }
 
       //se podria usar el rut que esta en planes, o el del alumno en el local storage, aqui estamos usando la del local storage.
       async actualizarRanking(rut, planes: any) {
         for (const element of planes) {
-          await this.prisma.planificacion.update({
-            where: {
-              rut_alumno_fecha: {
-                rut_alumno: rut,
-                fecha: element.fecha,
-              },
-            },
-            data: {
-              ranking: element.ranking,
-            },
-          });
+          
+          await this.planRepo.updateRanking({rut_alumno: rut, fecha_plan: element.fecha}, element.ranking)
         }
+
         return { message: 'Rankings actualizados correctamente' };
       }
 
