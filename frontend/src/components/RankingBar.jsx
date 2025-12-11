@@ -12,6 +12,7 @@ export default function RankingBar({
   semestre,
   handleCerrar,
   planSelect,
+  handleDelete
 }) {
 
 const getRankingColor = (rank) => {
@@ -108,6 +109,15 @@ const getRankingColor = (rank) => {
                   onClick={() => mostrarPlan(plan)}
                 >
                   Mostrar
+                </Button>
+                
+                <Button
+                  color="light"
+                  size="xs"
+                  pill
+                  onClick={() => handleDelete(plan)}
+                >
+                  Eliminar
                 </Button>
               </div>
             </div>

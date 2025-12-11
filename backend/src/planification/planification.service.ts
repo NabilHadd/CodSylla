@@ -134,18 +134,22 @@ export class PlanificationService {
         maxCredits: number;
         postponed: { codigo: string; nombre: string }[];
         priority: { codigo: string; nombre: string }[];
+        reprobed: { codigo: string; nombre: string }[];
       }){
 
-        const { rut, carrera, nombre, maxCredits, postponed, priority} = body;
+        const { rut, carrera, nombre, maxCredits, postponed, priority, reprobed} = body;
+
+        let will_fail_once = [...reprobed].map(x => x.codigo);
 
         const MAX_CREDITOS = maxCredits
         const NOMBRE = nombre
 
         const fecha_creacion = new Date();
-
+ 
         const aprobados = await this.histoRepo.findAprobados(rut)
         const ramos = await this.getRamos(carrera.codigo, carrera.catalogo)
         const historial = await this.histoRepo.findHistorial(rut)
+
 
         historial.sort((a, b) => Number(a.sem_cursado) - Number(b.sem_cursado));
 
@@ -216,8 +220,17 @@ export class PlanificationService {
 
           for (const ramo of ordenados) {
             if (creditos + ramo.creditos <= MAX_CREDITOS) {
-              semestreRamos.push({ codigo: ramo.codigo, estado: "pendiente", creditos: ramo.creditos });
-              creditos += ramo.creditos;
+
+              if(will_fail_once.includes(ramo.codigo)){
+                semestreRamos.push({ codigo: ramo.codigo, estado: "reprobado", creditos: ramo.creditos });
+                creditos += ramo.creditos;
+
+              }else{
+                semestreRamos.push({ codigo: ramo.codigo, estado: "pendiente", creditos: ramo.creditos });
+                creditos += ramo.creditos;
+
+              }
+
             }
           }
 
@@ -232,7 +245,8 @@ export class PlanificationService {
           plan.push({ semestre: semestreActual, ramos: semestreRamos, totalCreditos: creditos });
 
           // Actualizar aprobados y pendientes solo con los realmente agregados
-          const cursadosEsteSemestre = semestreRamos.map(r => r.codigo);
+          const cursadosEsteSemestre = semestreRamos.filter(x => x.estado !== 'reprobado').map(r => r.codigo);
+          will_fail_once = will_fail_once.filter(x => !semestreRamos.map(x => x.codigo).includes(x));
           aprobados_actuales.push(...cursadosEsteSemestre);
           pendientes_actuales = pendientes_actuales.filter(r => !cursadosEsteSemestre.includes(r));
 
@@ -262,10 +276,12 @@ export class PlanificationService {
           return { success: false, error: error.message || 'Error al crear el plan.' };
         }
 
-
-        // 7️⃣ retorno final
-
       }
+
+
+
+
+
 
       //el home del alumno por defecto siempre va a consultar el ranking n°1
       //el cual siempre estara lleno debido a que apenas se ingresa a la pagina se agrega la provisional
@@ -275,7 +291,7 @@ export class PlanificationService {
         const {rut, carrera} = body
 
         //se consulta por el plan
-        const plan = await this.planRepo.findPlan(rut, ranking); 
+        const plan = await this.planRepo.findByRanking(rut, ranking); 
 
         if(!plan) throw new Error("Planificación no encontrada");
 
@@ -430,6 +446,32 @@ export class PlanificationService {
         }
 
         return { message: 'Rankings actualizados correctamente' };
+      }
+
+      async deletePlan(rut_alumno: string, fecha: Date, ranking: number){
+
+        const planes = await this.planRepo.findAllPlanByRut(rut_alumno);
+
+
+        planes.forEach(async p => {
+          if(p.ranking > ranking){
+            await this.planRepo.updateRanking({rut_alumno: p.rut_alumno, fecha_plan: p.fecha}, (p.ranking-1))
+          }
+        });
+
+        try {
+          const res = await this.planRepo.deletePlan(rut_alumno, fecha);
+          return {
+            success: true,
+            res
+          }
+        } catch (error) {
+          return {
+            success: false,
+            error
+          }
+        }
+
       }
 
 }

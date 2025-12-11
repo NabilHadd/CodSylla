@@ -56,6 +56,26 @@ function Home() {
     }
   }, [mensaje]);
 
+
+  const handleDelete = async (plan) => {
+    axios.delete(
+      `${baseUrl}/planification/eliminar-plan`,
+      { data: plan,
+        ...headerToken
+    })
+    .then(res => {
+      setLoading(false);
+      setMensaje("PLan eliminado correctamente");
+      setType("success");
+    })
+    .catch(err => {
+      setMensaje("No se pudo eliminar el plan");
+      setType("error");
+      setLoading(false);
+    });
+    setPlanes([...planes].filter(x => x.ranking !== plan.ranking))
+  }
+
   const handleSave = async () => {
 
     axios.post(
@@ -137,7 +157,7 @@ function Home() {
       {/* Header */}
       <Header setMenuOpen={setMenuOpen} title={'Ranking de Planes'}>
         <Button color="blue" onClick={handleSave}>
-          Guardar cambios
+          Guardar posiciones
         </Button>
       </Header>
 
@@ -167,6 +187,7 @@ function Home() {
             semestre={semestre} 
             handleCerrar={handleCerrar} 
             planSelect={planSelect}
+            handleDelete={handleDelete}
           />
 
         {mensaje && (

@@ -26,6 +26,11 @@ export class RamoService {
         const aprobados = await this.histoRepo.findAprobados(rut);
         const historial = aprobados.map(x => x.codigo_ramo);
         const pendientes = ramos.filter(r => !historial.includes(r.codigo_ramo));
+        const ramosAux = await Promise.all(
+            pendientes.map(async (x) => (
+                await this.ramoRepo.findRamo(x.codigo_ramo)
+            ))
+        );
         const ramosConNombre = await Promise.all(
             pendientes.map(async (x) => ({
                 nombre: await this.ramoRepo.findNombreRamo(x.codigo_ramo),
@@ -33,7 +38,7 @@ export class RamoService {
             }))
         );
 
-        return ramosConNombre;
+        return ramosAux; 
     }
     
 }

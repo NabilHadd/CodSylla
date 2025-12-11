@@ -1,4 +1,4 @@
-import { Controller, Get, Param, UseGuards, Req, Post, Body } from '@nestjs/common';
+import { Controller, Get, Param, UseGuards, Req, Post, Body, Delete } from '@nestjs/common';
 import { PlanificationService } from './planification.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 
@@ -21,6 +21,7 @@ async generar(@Req() req, @Body() body) {
     maxCredits: body.maxCredits,
     postponed: body.postponed,
     priority: body.priority,
+    reprobed: body.reprobed
   };
 
   return this.planificationService.generarPlanS(data);
@@ -74,6 +75,17 @@ async actualizarRanking(@Req() req, @Body() body: any) {
   // body podría contener algo como: { nuevosRankings: [...] }
   return this.planificationService.actualizarRanking(rut, planes);
 }
+
+@UseGuards(JwtAuthGuard)
+@Delete('eliminar-plan')
+async eliminarPlan(@Req() req, @Body() body: any) {
+  const rut = req.user.rut;
+  const fecha = body.fecha;
+  const ranking = body.ranking;
+
+  return this.planificationService.deletePlan(rut, fecha, ranking);
+}
+
 
 
 }

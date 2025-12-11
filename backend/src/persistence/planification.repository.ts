@@ -5,7 +5,21 @@ import { PrismaService } from 'src/prisma/prisma.service';
 export class PlanificationRepository{
     constructor(private readonly prisma: PrismaService){}
 
-    async findPlan(rut: string, ranking: number){
+
+    
+
+    async findPlan(rut: string, fecha: Date){
+      const plan = await this.prisma.planificacion.findUnique({
+        where: {
+          rut_alumno_fecha: {
+            rut_alumno: rut,
+            fecha: fecha,
+          },
+        },
+      });
+    }
+
+    async findByRanking(rut: string, ranking: number){
         return await this.prisma.planificacion.findFirst({
           where: {
             rut_alumno: rut,
@@ -74,7 +88,7 @@ export class PlanificationRepository{
     }
 
     async updateRanking(plan_key: {rut_alumno: string, fecha_plan: Date}, ranking: number){
-      await this.prisma.planificacion.update({
+      const res = await this.prisma.planificacion.update({
         where: {
           rut_alumno_fecha: {
             rut_alumno: plan_key.rut_alumno,
@@ -85,6 +99,25 @@ export class PlanificationRepository{
           ranking: ranking,
         },
       });
+
+      return res;
+    }
+
+    async deletePlan(rut_alumno: string, fecha: Date){
+
+       const plan = await this.prisma.planificacion.delete({
+          where:{
+            rut_alumno_fecha:{
+              rut_alumno: rut_alumno,
+              fecha: fecha,
+            }
+          },
+          include: {
+            ramos: true,
+          },
+        });
+
+        return plan;
     }
 
 }

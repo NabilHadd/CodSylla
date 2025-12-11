@@ -8,9 +8,13 @@ export class RamoRepository{
     //getters
 
     async findRamo(codigo_ramo: string){
-        return await this.prisma.ramo.findUnique({
+        const ramo = await this.prisma.ramo.findUnique({
             where: { codigo: codigo_ramo },
         });
+
+        if(!ramo) throw new Error("Ramo no encontrado en la base de datos.");
+
+        return ramo;
     }
 
     async findAllRamos(codigo_syll, catalogo){
@@ -49,12 +53,8 @@ export class RamoRepository{
     }
 
     async findNombreRamo(codigo_ramo: string){
-      const ramo = await this.prisma.ramo.findUnique({
-        where: {
-          codigo: codigo_ramo,
-        },
-      });
-      return ramo?.nombre
+      const ramo = await  this.findRamo(codigo_ramo);
+      return ramo.nombre
     }
 
     async findCarreraByRamo(codigo_ramo: string){
@@ -66,8 +66,9 @@ export class RamoRepository{
           carrera: true,
         },
       });
-
-      return carrera?.carrera || ''
+      if(!carrera) throw new Error("Carrera no encontrada en la base de datos.");
+    
+      return carrera.carrera
     }
 
 
