@@ -58,7 +58,11 @@ export default function MainForm() {
     setLoading(true);
     setMensaje("");
 
+
     try {
+
+      if (nombrePlan === "") throw new Error("Ingrese un nombre al plan");
+
       const { data } = await axios.post(
         `${baseUrl}/planification/generar`,
         { nombre: nombrePlan, maxCredits, postponed, priority, reprobed},
@@ -67,11 +71,13 @@ export default function MainForm() {
 
       if (!data.success) throw new Error(data.error);
 
-      setMensaje("Planificación generada sin problemas.");
+      setTimeout(() => setMensaje("Planificación generada sin problemas."), 0);
       setType("success");
+      limpiarFormulario()
+
 
     } catch (err) {
-      setMensaje(err.response?.data?.error || err.message);
+      setTimeout(() => setMensaje("Error: " + (err.response?.data?.message || err.message)), 0);
       setType("error");
     } finally {
       setLoading(false);
@@ -97,6 +103,15 @@ export default function MainForm() {
       toSet([...toList, course]);
     }
   };
+
+  const limpiarFormulario = () => {
+    setNombrePlan("");
+    setPriority([]);
+    setPostponed([]);
+    setReprobed([]);
+    setMaxCredits(32);
+  };
+
 
 
 

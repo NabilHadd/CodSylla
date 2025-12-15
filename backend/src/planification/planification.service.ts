@@ -309,13 +309,13 @@ export class PlanificationService {
           .sort((a, b) => Number(a) - Number(b));
 
         //se ordenan los ramos por semestre
-        const ramos_por_semestre = semestres
+        const planificacion = semestres
           .map(z => ({ 
             sem: z,
             ramos: ramos.filter(x => x.sem_asignado == z)
           }))
             
-        return ramos_por_semestre
+        return planificacion
         
       }
 

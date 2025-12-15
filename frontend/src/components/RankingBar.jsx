@@ -110,15 +110,16 @@ const getRankingColor = (rank) => {
                 >
                   Mostrar
                 </Button>
-                
-                <Button
-                  color="light"
-                  size="xs"
-                  pill
-                  onClick={() => handleDelete(plan)}
-                >
-                  Eliminar
-                </Button>
+                {plan.ranking > 1 && (
+                  <Button
+                    color="light"
+                    size="xs"
+                    pill
+                    onClick={() => handleDelete(plan)}
+                  >
+                    Eliminar
+                  </Button>
+                )}
               </div>
             </div>
           );

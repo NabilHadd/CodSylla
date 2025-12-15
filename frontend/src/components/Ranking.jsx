@@ -46,7 +46,7 @@ function Home() {
         setLoading(false);
     })
 
-  }, []);
+  }, [planes]);
 
 
   useEffect(() => {
@@ -129,6 +129,8 @@ function Home() {
     [newPlanes[index - 1], newPlanes[index]] = [newPlanes[index], newPlanes[index - 1]];
     newPlanes.forEach((p, i) => (p.ranking = i + 1));
     setPlanes(newPlanes);
+
+    handleSave();
   };
 
   const moveDown = (index) => {
@@ -137,6 +139,8 @@ function Home() {
     [newPlanes[index + 1], newPlanes[index]] = [newPlanes[index], newPlanes[index + 1]];
     newPlanes.forEach((p, i) => (p.ranking = i + 1));
     setPlanes(newPlanes);
+
+    handleSave();
   };
 
   //despues utilizar esta info para agregar info extra por cada plan del ranking
@@ -155,11 +159,7 @@ function Home() {
     <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white text-slate-800">
 
       {/* Header */}
-      <Header setMenuOpen={setMenuOpen} title={'Ranking de Planes'}>
-        <Button color="blue" onClick={handleSave}>
-          Guardar posiciones
-        </Button>
-      </Header>
+      <Header setMenuOpen={setMenuOpen} title={'Ranking de Planes'}/>
 
       {/* Sidebar */}
       {menuOpen && (

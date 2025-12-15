@@ -94,7 +94,7 @@ function Home() {
         {/* Contenido principal*/}
         <div className="flex-1 p-6">
           <h1 className="text-4xl font-bold text-center mb-6 text-blue-800">
-            ¡Hola Alumno!
+            {planificacion.semestreActual} hoa
           </h1>
 
           <Plan semestreActual={semestreActual} planificacion={planificacion}/>

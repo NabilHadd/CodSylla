@@ -87,6 +87,14 @@ async eliminarPlan(@Req() req, @Body() body: any) {
 }
 
 
+  // Nuevo endpoint para obtener una planificación según su ranking
+  @UseGuards(JwtAuthGuard)
+  @Get('obtener-nombre/:rank')
+  async obtenerNombrePorRanking(@Req() req, @Param('rank') rank: number) {
+    //OBTENER EL NOMBRE DE UNA PLANIFIFCACIÓN
+  }
+
+
 
 }
 
