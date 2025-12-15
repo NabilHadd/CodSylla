@@ -71,7 +71,7 @@ export class AuthService {
         })
 
         //se genera la planificacion provisional
-        this.planService.generarPlan({
+        await this.planService.generarPlan({
           rut: data.rut,
           carrera: {
             codigo: data.carreras[0].codigo,

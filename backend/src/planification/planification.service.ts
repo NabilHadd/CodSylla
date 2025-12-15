@@ -38,21 +38,11 @@ export class PlanificationService {
         //codigo de los ramos pendientes
         const pendientes = ramos.filter(r => !aprobados_cod.includes(r.codigo_ramo)).map(r => r.codigo_ramo)
 
-        //semestres sin los de verano ni invierno
-        const semestresNormales = historial
-          .map(h => Number(h.sem_cursado))
-          .filter(s => ![15, 25].includes(Number(String(s).slice(-2))));
-        
-        let maxSemestre = semestresNormales.length > 0 ? Math.max(...semestresNormales) : 0;
-        let minSemestre = semestresNormales.length > 0 ? Math.min(...semestresNormales) : 0;
-
         const aux = historial.map(x => x.sem_cursado);
         const semestres_historial = [...new Set(aux)]
           .sort((a, b) => Number(a) - Number(b));
 
 
-
-        
 
         let plan: { semestre: number; ramos: { codigo: string; estado: string; creditos: number }[]; totalCreditos: number }[] = [];
         let aprobados_actuales = [...aprobados_cod];
@@ -110,14 +100,10 @@ export class PlanificationService {
           semestreActual = this.getAll.siguienteSemestre(semestreActual);
         }
 
-        //console.log('plan provisional')
-        //console.log(JSON.stringify(plan, null, 2));
-
 
         await this.createPlan(rut, 'provisional', String(semestre), 1, fecha_creacion)
         await this.agregarRamosPlanificacion(rut, fecha_creacion, plan)
 
-        console.log(plan)
 
         // 7️⃣ retorno final
         return {
@@ -126,6 +112,10 @@ export class PlanificationService {
         };
 
       }
+
+
+
+
 
       async generarPlanS(body: { 
         rut: string; 
@@ -418,6 +408,7 @@ export class PlanificationService {
             ranking,
           }
         )
+        console.log('plan subido')
         return plan;
       }
 
@@ -436,7 +427,11 @@ export class PlanificationService {
           await this.planRepo.fillPlan({rut_alumno: rut, fecha_plan: fechaPlan, infoSemestre: semestreObj})
 
         }
+        console.log('planificacion provisional lista.')
       }
+
+
+
 
       //se podria usar el rut que esta en planes, o el del alumno en el local storage, aqui estamos usando la del local storage.
       async actualizarRanking(rut, planes: any) {
