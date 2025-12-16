@@ -39,14 +39,14 @@ COPY . .
 RUN npm run build
 
 # -----------------------
-# Stage 2: Runtime
+# Stage 2: Runtime con Playwright
 # -----------------------
-FROM node:20-alpine
+FROM mcr.microsoft.com/playwright:v1.44.0-focal
 
 WORKDIR /app
 
-# Instala bash y cliente de Postgres
-RUN apk add --no-cache bash postgresql-client
+# Instala cliente de Postgres y bash
+RUN apt-get update && apt-get install -y postgresql-client bash && rm -rf /var/lib/apt/lists/*
 
 # Copiar dependencias de producción
 COPY --from=builder /app/package*.json ./
