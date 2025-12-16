@@ -28,6 +28,9 @@ export class PlanificationRepository{
         });
     }
 
+
+    
+
     async findRamosPlan(rut: string, fecha_plan: Date){
         return await this.prisma.planificacion_ramo.findMany({
           where: {
@@ -37,6 +40,10 @@ export class PlanificationRepository{
         })
     }
 
+
+
+
+
     async findAllPlanByRut(rut: string){
       return await this.prisma.planificacion.findMany({
           where: {
@@ -44,6 +51,26 @@ export class PlanificationRepository{
           },
         });
     }
+
+
+
+
+
+    async findAllByRutWR(rut: string){
+      return await this.prisma.planificacion.findMany({
+        where:{
+          rut_alumno: rut,
+        }, 
+        include: {
+          ramos: true,
+        },
+      });
+
+    }
+
+
+
+
 
     async findPlanByName(rut: string, nombre_plan: string){
       return await this.prisma.planificacion.findFirst({
@@ -53,6 +80,11 @@ export class PlanificationRepository{
           },
         });
     }
+
+
+
+
+
 
     async createPlan(
       data: {
@@ -67,6 +99,10 @@ export class PlanificationRepository{
           data: data
         });
     }
+
+
+
+
 
     async fillPlan(
       data: {
@@ -87,6 +123,9 @@ export class PlanificationRepository{
       });
     }
 
+
+
+
     async updateRanking(plan_key: {rut_alumno: string, fecha_plan: Date}, ranking: number){
       const res = await this.prisma.planificacion.update({
         where: {
@@ -102,6 +141,8 @@ export class PlanificationRepository{
 
       return res;
     }
+
+
 
     async deletePlan(rut_alumno: string, fecha: Date){
 

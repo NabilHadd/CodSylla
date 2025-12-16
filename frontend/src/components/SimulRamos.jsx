@@ -5,7 +5,7 @@ import { useAuth } from "../hooks/useAuth";
 import { useApi } from "../hooks/useApi";
 import axios from "axios";
 
-export default function SimulRamos({ ramos, onClose }) {
+export default function SimulRamos({ ramos, onClose, handleToast}) {
     const {getHeaderToken} = useAuth();
     const {getBaseUrl} = useApi();
     const baseUrl = getBaseUrl();
@@ -48,26 +48,55 @@ export default function SimulRamos({ ramos, onClose }) {
                 { ramos: payload },
                 headerToken
             );
-            onClose();
+            handleToast(true);
         } catch (err) {
-            console.error(err);
+            handleToast(false);
         }
     };
 
     return (
-        <>
-            <h2 className="text-xl font-bold">Simulación de Ramos</h2>
+    <>
+        <h2 className="text-xl font-bold mb-4">Simulación de Ramos</h2>
 
-            {lista.map((r) => (
-                <div key={r.codigo} className="p-4">
-                    <RamoForm ramo={r} color={getColorEstado(r.estado)}>
-                        {buttons(r.estado, (nuevo) => cambiarEstado(r.codigo, nuevo))}
-                    </RamoForm>
-                </div>
-            ))}
+        {lista.map((r) => (
+        <div key={r.codigo} className="p-4">
+            <RamoForm ramo={r} color={getColorEstado(r.estado)}>
+            {buttons(r.estado, (nuevo) => cambiarEstado(r.codigo, nuevo))}
+            </RamoForm>
+        </div>
+        ))}
 
-            <Button color="green" onClick={updateState}>Cerrar</Button>
-        </>
+        {/* Botones de acción */}
+        <div className="mt-6 flex justify-between gap-4">
+        <Button
+            onClick={onClose}
+            className="
+            flex-1
+            bg-rose-100 text-rose-700
+            border-2 border-rose-300
+            hover:bg-rose-200
+            transition-all
+            shadow-sm
+            "
+        >
+            Cerrar
+        </Button>
+
+        <Button
+            onClick={updateState}
+            className="
+            flex-1
+            bg-emerald-100 text-emerald-700
+            border-2 border-emerald-300
+            hover:bg-emerald-200
+            transition-all
+            shadow-sm
+            "
+        >
+            Guardar
+        </Button>
+        </div>
+    </>
     );
 }
 

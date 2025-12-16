@@ -12,6 +12,7 @@ import { PlanificationModule } from './planification/planification.module';
 import { GetAllModule } from './get-all/get-all.module';
 import { HistorialModule } from './historial/historial.module';
 import { RamoModule } from './ramo/ramo.module';
+import { PrintModule } from './print/print.module';
 
 @Module({
   imports: [
@@ -25,6 +26,7 @@ import { RamoModule } from './ramo/ramo.module';
     GetAllModule,
     HistorialModule,
     RamoModule,
+    PrintModule
   ],
   controllers: [AppController],
   providers: [AppService, PrismaService],

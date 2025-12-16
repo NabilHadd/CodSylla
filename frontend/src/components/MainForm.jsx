@@ -4,7 +4,6 @@ import { Button, TextInput, Card, Alert } from "flowbite-react";
 import {Header, SideMenu, Footer, RestrictedAcces, Loading, Toast} from "./Utils/index"
 import { useApi } from "../hooks/useApi";
 import axios from "axios";
-import RamoForm from "./Form/RamoForm";
 import { useAuth } from "../hooks/useAuth";
 import Nivel from "./Form/Nivel";
 import Casilla from "./Form/Casilla";
@@ -20,6 +19,7 @@ export default function MainForm() {
   const [error, setError] = useState("");
   const [menuOpen, setMenuOpen] = useState(false);
   const [mensaje, setMensaje] = useState("");
+  const [toastKey, setToastKey] = useState(0);
   const navigate = useNavigate();
   const [disponibles, setDisponibles] = useState([]);
   const [type, setType] = useState("");
@@ -71,14 +71,16 @@ export default function MainForm() {
 
       if (!data.success) throw new Error(data.error);
 
-      setTimeout(() => setMensaje("Planificación generada sin problemas."), 0);
+      setMensaje("Planificación generada sin problemas.");
       setType("success");
-      limpiarFormulario()
+      setToastKey(k => k + 1)
+      navigate('/home')
 
 
     } catch (err) {
-      setTimeout(() => setMensaje("Error: " + (err.response?.data?.message || err.message)), 0);
+      setMensaje("Error: " + (err.response?.data?.message || err.message));
       setType("error");
+      setToastKey(k => k + 1)
     } finally {
       setLoading(false);
     }
@@ -103,15 +105,6 @@ export default function MainForm() {
       toSet([...toList, course]);
     }
   };
-
-  const limpiarFormulario = () => {
-    setNombrePlan("");
-    setPriority([]);
-    setPostponed([]);
-    setReprobed([]);
-    setMaxCredits(32);
-  };
-
 
 
 
@@ -211,7 +204,7 @@ export default function MainForm() {
             </section>
             
             {mensaje && 
-            <Toast message={mensaje} type={type}/>
+            <Toast key={toastKey} message={mensaje} type={type}/>
             }
 
             {/* Footer actions */}

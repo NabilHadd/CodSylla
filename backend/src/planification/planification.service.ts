@@ -5,6 +5,7 @@ import { HistorialRepository } from 'src/persistence/historial.repository';
 import { PlanificationRepository } from 'src/persistence/planification.repository';
 import { RamoRepository } from 'src/persistence/ramo.repository';
 
+
 @Injectable()
 export class PlanificationService {
 
@@ -246,7 +247,12 @@ export class PlanificationService {
 
 
 
+
+
         try {
+          const testDuplicado = plan.map(x=> x.ramos.map(z => ({codigo_ramo: z.codigo, sem_asignado: String(x.semestre)}))).flat();
+          await this.cmpPlans(rut, testDuplicado);
+
           await this.createPlan(
             rut,
             NOMBRE,
@@ -408,7 +414,6 @@ export class PlanificationService {
             ranking,
           }
         )
-        console.log('plan subido')
         return plan;
       }
 
@@ -427,7 +432,6 @@ export class PlanificationService {
           await this.planRepo.fillPlan({rut_alumno: rut, fecha_plan: fechaPlan, infoSemestre: semestreObj})
 
         }
-        console.log('planificacion provisional lista.')
       }
 
 
@@ -442,6 +446,9 @@ export class PlanificationService {
 
         return { message: 'Rankings actualizados correctamente' };
       }
+
+
+
 
       async deletePlan(rut_alumno: string, fecha: Date, ranking: number){
 
@@ -467,6 +474,27 @@ export class PlanificationService {
           }
         }
 
+      }
+
+
+
+      async cmpPlans(rut: string, plan: any){
+        const planes = await this.planRepo.findAllByRutWR(rut)
+        const simplePlans = planes.map(x => x.ramos.map(z => ({codigo_ramo: z.codigo_ramo, sem_asignado: z.sem_asignado})))
+        simplePlans.forEach(p => {
+          if(JSON.stringify(p) === JSON.stringify(plan)) throw new Error("Ya existe una planificación identica a esa");
+        });
+      }
+
+
+
+      async getNameByRanking(rut:string, rank: number){
+
+        const plan = await this.planRepo.findByRanking(rut, rank)
+
+        if(!plan) throw new Error("Plan no encontrado");
+
+        return plan.nombre_plan? plan.nombre_plan : 'Planificación';
       }
 
 }

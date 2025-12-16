@@ -1,16 +1,19 @@
 import React, { useEffect, useState } from "react";
 import {Header, SideMenu, Footer, RestrictedAcces, Loading, Toast} from "./Utils/index"
 import { useNavigate } from "react-router-dom";
+import {renderToString} from "react-dom/server"
 import { Button } from "flowbite-react";
 import RankingBar from "./RankingBar";
 import { useApi } from "../hooks/useApi";
 import axios from "axios";
 import { useAuth } from "../hooks/useAuth";
+import PrintedPlan from "./PrintedPlan.jsx/PrintedPlan";
 
-function Home() {
+export default function Ranking() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [mensaje, setMensaje] = useState("");
+  const [toastKey, setToastKey] = useState(0);
   const [planes, setPlanes] = useState([]);
   const [menuOpen, setMenuOpen] = useState(false);
   const [planSelect, setPlanSelect] = useState(null);
@@ -49,13 +52,6 @@ function Home() {
   }, [planes]);
 
 
-  useEffect(() => {
-    if (mensaje) {
-      const timer = setTimeout(() => setMensaje(""), 5000); // 3 segundos
-      return () => clearTimeout(timer);
-    }
-  }, [mensaje]);
-
 
   const handleDelete = async (plan) => {
     axios.delete(
@@ -64,17 +60,22 @@ function Home() {
         ...headerToken
     })
     .then(res => {
-      setLoading(false);
       setMensaje("PLan eliminado correctamente");
       setType("success");
+      setToastKey(k => k + 1)
     })
     .catch(err => {
       setMensaje("No se pudo eliminar el plan");
       setType("error");
+      setToastKey(k => k + 1)
+    })
+    .finally(()=>{
       setLoading(false);
-    });
+    })
     setPlanes([...planes].filter(x => x.ranking !== plan.ranking))
   }
+
+
 
   const handleSave = async () => {
 
@@ -84,16 +85,18 @@ function Home() {
       headerToken
     )
       .then(res => {
-        setLoading(false);
         setMensaje("Rankings actualizados correctamente");
         setType("success");
+        setToastKey(k => k + 1)
       })
       .catch(err => {
         setMensaje("No se pudo guardar el ranking");
         setType("error");
+        setToastKey(k => k + 1)
+      })
+      .finally(()=>{
         setLoading(false);
-        throw new Error("Error al guardar rankings");
-      });
+      })
 
   };
 
@@ -143,10 +146,80 @@ function Home() {
     handleSave();
   };
 
-  //despues utilizar esta info para agregar info extra por cada plan del ranking
-  //const togglePlan = (key) => {
-  //  setOpenPlan((prev) => ({ ...prev, [key]: !prev[key] }));
-  //};
+
+
+const generarHtml = async (plan) => {
+  const body = renderToString(
+  <PrintedPlan planificacion={plan} />
+);
+
+const html = `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- Opcional: config Tailwind -->
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            primary: '#2563eb',
+          },
+        },
+      },
+    }
+  </script>
+
+<style>
+  @page {
+    size: A4 landscape;
+    margin: 1cm;
+  }
+
+  .break {
+    page-break-before: always;
+  }
+
+  html, body {
+    width: 297mm;
+    height: 210mm;
+  }
+  
+  .print-scale {
+    transform: scale(0.85);
+    transform-origin: top left;
+    width: 117%;
+  }
+</style>
+</head>
+<body class="bg-white">
+  <div class="print-scale">
+    ${body}
+  </div>
+</body>
+</html>
+`;
+
+  const res = await axios.post(
+    `${baseUrl}/print/pdf`,
+    { html },
+    {
+      ...headerToken,
+      responseType: 'blob', // 👈 IMPORTANTE
+    }
+  );
+
+  const blob = new Blob([res.data], { type: 'application/pdf' });
+  const url = window.URL.createObjectURL(blob);
+
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'plan.pdf';
+  a.click();
+};
 
 
 
@@ -190,8 +263,10 @@ function Home() {
             handleDelete={handleDelete}
           />
 
+          <Button color='green' onClick={() => generarHtml(planificacion)}>Descargar Posición 1</Button>
+
         {mensaje && (
-          <Toast message={mensaje} type={type}/>
+          <Toast key={toastKey} message={mensaje} type={type}/>
         )}
 
         </div>
@@ -202,5 +277,3 @@ function Home() {
     </div>
   );
 }
-
-export default Home;
