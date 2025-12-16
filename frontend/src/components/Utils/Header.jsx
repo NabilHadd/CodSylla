@@ -1,13 +1,27 @@
 import React from "react";
 
-export default function Header({ setMenuOpen, title, children}) {
+export default function Header({ setMenuOpen, title, children }) {
   return (
-    <header className="flex items-center justify-between px-4 py-3 bg-white shadow-md sticky top-0 z-30">
+    <header
+      className="
+        flex items-center justify-between
+        px-4 py-3
+        sticky top-0 z-30
+
+        bg-blue-50/70 backdrop-blur-md
+        border-b border-blue-200
+        shadow-sm
+      "
+    >
       <div className="flex items-center gap-3">
         <button
           aria-label="menu"
           onClick={() => setMenuOpen(true)}
-          className="p-2 rounded-lg hover:bg-blue-100 transition"
+          className="
+            p-2 rounded-lg
+            hover:bg-blue-100
+            transition
+          "
         >
           <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -25,13 +39,14 @@ export default function Header({ setMenuOpen, title, children}) {
           </svg>
         </button>
 
-        <h1 className="text-xl font-semibold text-blue-700">
+        <h1 className="text-lg font-semibold text-blue-700">
           {title}
         </h1>
       </div>
 
-      <div className="hidden md:flex items-center gap-4"></div>
-      {children}
+      <div className="hidden md:flex items-center gap-4">
+        {children}
+      </div>
     </header>
   );
 }

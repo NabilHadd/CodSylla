@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import RamoForm from "./RamoForm";
+import {RamoForm, ILabel} from '../index'
 
 export default function Nivel({ramos, moveCourse, disponibles}) {
   const [openNivel, setOpenNivel] = useState({});
@@ -32,14 +32,14 @@ export default function Nivel({ramos, moveCourse, disponibles}) {
                   {ramosPorNivel[nivel].map((r) => (
                     <RamoForm key={r.codigo} ramo={r}>
                       <button
-                        onClick={() => moveCourse(r, "ramos", "priority")}
+                        onClick={() => moveCourse(r, ILabel.RAMOS, ILabel.PRIORITY)}
                         className="px-3 py-1 rounded-lg text-sm font-medium bg-emerald-100 text-emerald-700 hover:brightness-95"
                       >
                         Priorizar
                       </button>
 
                       <button
-                        onClick={() => moveCourse(r, "ramos", "reprobed")}
+                        onClick={() => moveCourse(r, ILabel.RAMOS, ILabel.REPROBED)}
                         className="px-3 py-1 rounded-lg text-sm font-medium bg-rose-100 text-rose-700 hover:brightness-95"
                       >
                         Reprobar
@@ -47,7 +47,7 @@ export default function Nivel({ramos, moveCourse, disponibles}) {
 
                       {disponibles.includes(r.codigo) && (
                         <button
-                          onClick={() => moveCourse(r, "ramos", "postponed")}
+                          onClick={() => moveCourse(r, ILabel.RAMOS, ILabel.POSTPONED)}
                           className="px-3 py-1 rounded-lg text-sm font-medium bg-yellow-100 text-yellow-700 hover:brightness-95"
                         >
                           Postergar

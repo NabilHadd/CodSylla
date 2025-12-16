@@ -1,5 +1,5 @@
 import React, {useState} from "react";
-import Ramo from "./Ramo";
+import { IColor, Ramo } from "../index";
 
 export default function Semestre({sem, semActual}){
     const [openSemestres, setOpenSemestres] = useState({});
@@ -27,9 +27,9 @@ export default function Semestre({sem, semActual}){
     const getSemestreColor = (sem) => {
       switch (Number(sem)) {
         case Number(semActual):
-          return "yellow";
+          return IColor.YELLOW;
         default:
-          return "blue";
+          return IColor.BLUE;
       }
     };
 

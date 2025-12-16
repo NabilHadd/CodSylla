@@ -1,26 +1,16 @@
 import React, { useEffect, useState } from "react";
 import { useAuth } from "../hooks/useAuth";
 import { useNavigate } from "react-router-dom";
-import Plan from "./Planificacion/PLan";
 import { useApi } from "../hooks/useApi";
 import { Button} from "flowbite-react";
-import {Header, SideMenu, Footer, RestrictedAcces, Loading, Toast} from "./Utils/index"
-import SimulRamos from "./SimulRamos";
+import {Header, SideMenu, Footer, RestrictedAcces, Loading, Toast, SimulRamos, Plan, IToastType} from "../components/index"
 import axios from "axios";
 
 
 
-function Home() {
+export default function Home() {
 
   
-const IToastType = {
-  SUCCESS: 'success',
-  INFO: 'info',
-  ERROR: 'error',
-  WARNING: 'warning'
-}
-
-
   const [semestreActual, setSemestreActual] = useState(null);
   const [planificacion, setPlanificacion] = useState([]);
   const [nombrePlan, setNombrePlan] = useState('');
@@ -28,23 +18,20 @@ const IToastType = {
   const [ramosActuales, setRamosActuales] = useState([]);
   const [menuOpen, setMenuOpen] = useState(false);
   const [loading, setLoading] = useState(true);
-  const {getToken, getHeaderToken} = useAuth();
-  const {getBaseUrl} = useApi();  
   const [error, setError] = useState(null);
   const [mensaje, setMensaje] =  useState("");
   const [toastKey, setToastKey] = useState(0);
   const [toastType, setToastType] = useState(IToastType.INFO);
 
+  const {getHeaderToken} = useAuth();
+  const {getBaseUrl} = useApi();  
+
   const navigate = useNavigate();
-  const token = getToken()
-  const headerToken = getHeaderToken()
-  const baseUrl = getBaseUrl()
 
 
   useEffect(() => {
 
-
-    axios.get(`${baseUrl}/planification/obtener/1`, headerToken)
+    axios.get(`${getBaseUrl()}/planification/obtener/1`, getHeaderToken())
     .then(res => {
       setPlanificacion(res.data);
     })
@@ -52,7 +39,7 @@ const IToastType = {
       setError(err.message);
     });;
 
-    axios.get(`${baseUrl}/planification/obtener-nombre/1`, headerToken)
+    axios.get(`${getBaseUrl()}/planification/obtener-nombre/1`, getHeaderToken())
     .then(res => {
       setNombrePlan(res.data);
     })
@@ -60,14 +47,14 @@ const IToastType = {
       setError(err.message);
     });;
 
-    axios.get(`${baseUrl}/get-all/semestre`, headerToken)
+    axios.get(`${getBaseUrl()}/get-all/semestre`, getHeaderToken())
     .then(res => {
       setSemestreActual(res.data);
     }).catch(err => {
       setError(err.message);
     });
 
-    axios.get(`${baseUrl}/ramo/ramos-actuales`, headerToken)
+    axios.get(`${getBaseUrl()}/ramo/ramos-actuales`, getHeaderToken())
     .then(res => {
       setRamosActuales(res.data);
     }).catch(err => {
@@ -76,7 +63,7 @@ const IToastType = {
       setLoading(false);
     });
 
-  }, [token, simulRamos]);
+  }, [simulRamos, getBaseUrl, getHeaderToken]);
 
   const handleToast = (state) => {
     if(state) {
@@ -91,12 +78,12 @@ const IToastType = {
       console.log('false')
     }
   };
-
   
   if (loading) return <Loading mensaje="Cargando Home"/>
 
-
   if (error) return <RestrictedAcces error={error}/>
+
+
 
 
   return (
@@ -135,7 +122,6 @@ const IToastType = {
 
           <Plan semestreActual={semestreActual} planificacion={planificacion}/>
 
-          {/* Modal cuando simulRamos = true */}
           {simulRamos && (
             <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
               <div className="bg-white p-6 rounded-lg shadow-xl max-h-[90vh] overflow-y-auto w-full max-w-lg">
@@ -146,12 +132,11 @@ const IToastType = {
 
         </div>
       </div>
-              {mensaje && (
-                <Toast key={toastKey} message={mensaje} type={toastType}/>
-              )}
+
+      {mensaje && (
+        <Toast key={toastKey} message={mensaje} type={toastType}/>
+      )}
       <Footer/>
     </div>
   );
 }
-
-export default Home;

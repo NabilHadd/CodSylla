@@ -1,20 +1,23 @@
 import React, { useState } from "react";
 import RamoForm from "./Form/RamoForm";
 import { Button } from "flowbite-react";
+import { IStateRamo, IColor, IToastType } from './index'
 import { useAuth } from "../hooks/useAuth";
 import { useApi } from "../hooks/useApi";
 import axios from "axios";
 
+
 export default function SimulRamos({ ramos, onClose, handleToast}) {
+
+
+    const [lista, setLista] = useState(ramos);
+
     const {getHeaderToken} = useAuth();
     const {getBaseUrl} = useApi();
     const baseUrl = getBaseUrl();
     const headerToken = getHeaderToken();
+    
 
-    // Copia local para manipular el estado de cada ramo
-    const [lista, setLista] = useState(ramos);
-
-    // Cambiar estado de 1 ramo
     const cambiarEstado = (codigo, nuevoEstado) => {
         setLista(prev =>
             prev.map(r =>
@@ -26,16 +29,18 @@ export default function SimulRamos({ ramos, onClose, handleToast}) {
     };
 
     const getColorEstado = (estado) => {
-        switch (estado.toLowerCase()) {
-            case 'aprobado':
-                return 'green'
-            case 'reprobado':
-                return 'red'
+        switch (estado.toUpperCase()) {
+            case IStateRamo.APROBADO:
+                return IColor.GREEN;
+            case IStateRamo.REPROBADO:
+                return IColor.RED;
             default:
-                return 'blue'
+                return IColor.BLUE;
         }
     };
 
+
+    //Metodo que lee el estado en el que se encuentra cada ramo y lo 
     const updateState = async () => {
         try {
             const payload = lista.map(r => ({
@@ -89,7 +94,7 @@ export default function SimulRamos({ ramos, onClose, handleToast}) {
             bg-emerald-100 text-emerald-700
             border-2 border-emerald-300
             hover:bg-emerald-200
-            transition-all
+            transition-all 
             shadow-sm
             "
         >
@@ -104,24 +109,24 @@ function buttons(estado, onChangeEstado) {
 
     if (!estado) return null;
 
-    const st = estado.toLowerCase();
+    const state = estado.toUpperCase();
 
-    return st === "inscrito" ? (
+    return state === IStateRamo.INSCRITO ? (
         <div className="flex gap-2">
             <Button
-                color="green"
+                color={IColor.GREEN}
                 size="xs"
                 className="px-3 py-1.5"
-                onClick={() => onChangeEstado("REPROBADO")}
+                onClick={() => onChangeEstado(IStateRamo.REPROBADO)}
             >
                 Reprobado
             </Button>
 
             <Button
-                color="green"
+                color={IColor.GREEN}
                 size="xs"
                 className="px-3 py-1.5"
-                onClick={() => onChangeEstado("APROBADO")}
+                onClick={() => onChangeEstado(IStateRamo.APROBADO)}
             >
                 Aprobado
             </Button>
@@ -129,10 +134,10 @@ function buttons(estado, onChangeEstado) {
     ) : (
         <div>
             <Button
-                color="green"
+                color={IColor.GREEN}
                 size="xs"
                 className="px-3 py-1.5 font-medium"
-                onClick={() => onChangeEstado("INSCRITO")}
+                onClick={() => onChangeEstado(IStateRamo.INSCRITO)}
             >
                 Quitar etiqueta
             </Button>

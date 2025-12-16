@@ -1,7 +1,7 @@
 import React from "react";
 import { Button } from "flowbite-react";
 import { HiChevronDown, HiChevronUp, HiX } from "react-icons/hi";
-import Plan from "./Planificacion/PLan";
+import {Plan} from './index'
 
 export default function RankingBar({
   planes,
@@ -33,11 +33,13 @@ export default function RankingBar({
     <div>
       {planes.length > 0 ? (
         planes.map((plan, i) => {
+          
           const isSelected = planSelect && planSelect.ranking === plan.ranking;
 
-          // Vista expandida
           if (isSelected) {
+
             return (
+
               <div
                 className={`rounded-xl shadow-md border ${getRankingColor(
                   plan.ranking
@@ -65,8 +67,8 @@ export default function RankingBar({
             );
           }
 
-          // Vista normal
           return (
+
             <div
               key={i}
               className={`mb-4 rounded-xl shadow-md border ${getRankingColor(
@@ -89,7 +91,7 @@ export default function RankingBar({
 
               {/* Ranking y botones */}
               <div className="flex items-center gap-2">
-                {/* Botones circulares modernos */}
+
                 <Button
                   color="gray"
                   size="sm"

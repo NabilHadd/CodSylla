@@ -1,6 +1,6 @@
 import React from "react";
-import RamoForm from "./RamoForm";
 import { Card } from "flowbite-react";
+import {RamoForm, ILabel} from '../index'
 
 export default function Casilla({type, array, moveCourse, from}) {
  
@@ -17,7 +17,7 @@ export default function Casilla({type, array, moveCourse, from}) {
                 <div className="grid grid-cols-1 gap-3">
                 {array.map((r) => (
                     <RamoForm key={r.codigo} ramo={r}>
-                        <button onClick={() => moveCourse(r, from, "ramos")} className="px-3 py-1 rounded-md text-sm bg-white border border-green-200">
+                        <button onClick={() => moveCourse(r, from, ILabel.RAMOS)} className="px-3 py-1 rounded-md text-sm bg-white border border-green-200">
                             Volver
                         </button>
                     </RamoForm>

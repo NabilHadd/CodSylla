@@ -1,40 +1,37 @@
-import { useNavigate } from 'react-router-dom';
+import { useDispatch, useSelector } from "react-redux";
+import { useNavigate } from "react-router-dom";
+import { login, logout } from "../store/authSlice";
 import { useCallback } from "react";
 
 export const useAuth = () => {
+  const dispatch = useDispatch();
   const navigate = useNavigate();
 
-  // Obtener datos del localStorage
-  const getToken = useCallback(() => localStorage.getItem("token"), []);
-  const getRol = useCallback(() => localStorage.getItem("rol"), []);
-  const isAdmin = useCallback(() => localStorage.getItem("isAdmin") === "true", []);
-  
-  
-  const getHeaderToken = useCallback(() => {
-    const token = localStorage.getItem("token");
-    return {
-      headers: {
-        Authorization: `Bearer ${token}`,
-        "Content-Type": "application/json",
-      }
-    }
-  }, [])
+  const { token, rol, isAdmin } = useSelector(state => state.auth);
 
-  const setToken = useCallback(({ admin, token, rol }) => {
-    localStorage.setItem("token", token);
-    localStorage.setItem("isAdmin", admin ? "true" : "false");
+  const setToken = useCallback((data) => {
+    dispatch(login(data));
+  }, [dispatch]);
 
-    if (rol) localStorage.setItem("rol", rol);
-    else localStorage.removeItem("rol");
-  }, []);
-
-  // Logout centralizado
   const handleLogout = useCallback(() => {
-    localStorage.removeItem("token");
-    localStorage.removeItem("rol");
-    localStorage.removeItem("isAdmin");
+    dispatch(logout());
     navigate("/");
-  }, [navigate]);
+  }, [dispatch, navigate]);
 
-  return { getToken, getRol, isAdmin, handleLogout, setToken, getHeaderToken};
+  const getHeaderToken = useCallback(() => ({
+    headers: {
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json",
+    },
+  }), [token]);
+
+  return {
+    token,
+    rol,
+    isAdmin,
+    isAuthenticated: !!token,
+    setToken,
+    handleLogout,
+    getHeaderToken,
+  };
 };

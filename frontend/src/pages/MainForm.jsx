@@ -1,12 +1,11 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button, TextInput, Card, Alert } from "flowbite-react";
-import {Header, SideMenu, Footer, RestrictedAcces, Loading, Toast} from "./Utils/index"
+import {Header, SideMenu, Footer, RestrictedAcces, Loading, Toast, Casilla, Nivel, ILabel} from "../components/index"
 import { useApi } from "../hooks/useApi";
-import axios from "axios";
 import { useAuth } from "../hooks/useAuth";
-import Nivel from "./Form/Nivel";
-import Casilla from "./Form/Casilla";
+import axios from "axios";
+
 
 export default function MainForm() {
   const [nombrePlan, setNombrePlan] = useState("");
@@ -51,9 +50,6 @@ export default function MainForm() {
   }, [token]);
 
 
-  //Se hace con metodo post para poder enviar los ramos postpuestos y priorizados.
-  //no es redundante tener catch y ademas el if, pq con el if estas recibiendo el error de si ya existe la planificacion
-  //con el catch recibes cualquier error.
   const generarPlanificacion = async () => {
     setLoading(true);
     setMensaje("");
@@ -198,9 +194,9 @@ export default function MainForm() {
 
             {/* Priority & Postponed side-by-side */}
             <section className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <Casilla type='priorizados' array={priority} moveCourse={moveCourse} from='priority' />
-              <Casilla type='postergados' array={postponed} moveCourse={moveCourse} from='postponed' />
-              <Casilla type='reprobados' array={reprobed} moveCourse={moveCourse} from='reprobed' />
+              <Casilla type='priorizados' array={priority} moveCourse={moveCourse} from={ILabel.PRIORITY} />
+              <Casilla type='postergados' array={postponed} moveCourse={moveCourse} from={ILabel.POSTPONED} />
+              <Casilla type='reprobados' array={reprobed} moveCourse={moveCourse} from={ILabel.REPROBED} />
             </section>
             
             {mensaje && 

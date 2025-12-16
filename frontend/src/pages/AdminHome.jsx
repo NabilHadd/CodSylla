@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useState, useCallback } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
-import Loading from "./Utils/Loading";
+import Loading from "../components/Utils/Loading";
 
 function AdminHome() {
   const [auditLog, setAuditLog] = useState([]);

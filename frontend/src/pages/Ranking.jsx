@@ -1,13 +1,12 @@
 import React, { useEffect, useState } from "react";
-import {Header, SideMenu, Footer, RestrictedAcces, Loading, Toast} from "./Utils/index"
+import {Header, SideMenu, Footer, RestrictedAcces, Loading, Toast, RankingBar, PrintedPlan, IToastType} from "../components/index"
 import { useNavigate } from "react-router-dom";
-import {renderToString} from "react-dom/server"
+import {renderToString} from "react-dom/server";
 import { Button } from "flowbite-react";
-import RankingBar from "./RankingBar";
 import { useApi } from "../hooks/useApi";
-import axios from "axios";
 import { useAuth } from "../hooks/useAuth";
-import PrintedPlan from "./PrintedPlan.jsx/PrintedPlan";
+import axios from "axios";
+
 
 export default function Ranking() {
   const [loading, setLoading] = useState(true);
@@ -26,6 +25,7 @@ export default function Ranking() {
   const baseUrl = getBaseUrl();
   const headerToken = getHeaderToken();
 
+  
   useEffect(() => {
 
     axios.get(`${baseUrl}/planification/obtener-todo`, headerToken)
@@ -45,7 +45,7 @@ export default function Ranking() {
         setLoading(false);
       })
     .catch(error => {
-        setError(error.message);
+        setError(error.message); 
         setLoading(false);
     })
 
@@ -61,12 +61,12 @@ export default function Ranking() {
     })
     .then(res => {
       setMensaje("PLan eliminado correctamente");
-      setType("success");
+      setType(IToastType.SUCCESS);
       setToastKey(k => k + 1)
     })
     .catch(err => {
       setMensaje("No se pudo eliminar el plan");
-      setType("error");
+      setType(IToastType.ERROR);
       setToastKey(k => k + 1)
     })
     .finally(()=>{
@@ -86,12 +86,12 @@ export default function Ranking() {
     )
       .then(res => {
         setMensaje("Rankings actualizados correctamente");
-        setType("success");
+        setType(IToastType.SUCCESS);
         setToastKey(k => k + 1)
       })
       .catch(err => {
         setMensaje("No se pudo guardar el ranking");
-        setType("error");
+        setType(IToastType.ERROR);
         setToastKey(k => k + 1)
       })
       .finally(()=>{
@@ -212,7 +212,7 @@ export default function Ranking() {
       { html },
       {
         ...headerToken,
-        responseType: 'blob', // 👈 IMPORTANTE
+        responseType: 'blob',
       }
     );
 
@@ -240,7 +240,7 @@ export default function Ranking() {
 
       {/* Sidebar */}
       {menuOpen && (
-        <SideMenu setMenuOpen={setMenuOpen} >
+        <SideMenu setMenuOpen={setMenuOpen}>
               <Button color="blue" onClick={() => navigate("/Home")}>
                 Volver
               </Button>
@@ -255,7 +255,7 @@ export default function Ranking() {
       <div className="flex-1 p-6">
 
         <div className="space-y-3 max-w-3xl mx-auto">
-          <RankingBar 
+          <RankingBar
             planes={planes} 
             moveDown={moveDown} 
             moveUp={moveUp} 

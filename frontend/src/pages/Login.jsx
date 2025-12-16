@@ -3,11 +3,11 @@ import { Label, TextInput, Button } from "flowbite-react";
 import axios from "axios";
 import logo from "../assets/codsylla.png";
 import { useNavigate } from "react-router-dom";
-import {Loading, Toast} from "./Utils/index"
+import {IToastType, Loading, Toast} from "../components/index"
 import { useAuth } from "../hooks/useAuth";
 import { useApi } from "../hooks/useApi";
 
-function Login() {
+export default function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [mensaje, setMensaje] = useState("");
@@ -117,11 +117,10 @@ function Login() {
         
         {/* Mensaje */}
         {mensaje && (
-          <Toast message={mensaje} type="error"/>
+          <Toast message={mensaje} type={IToastType.ERROR}/>
         )}
     </div>
   );
 
 }
 
-export default Login;

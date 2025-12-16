@@ -1,8 +1,9 @@
 import React, { useEffect } from "react";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import { IToastType } from "..";
 
-export default function Toast({message, type = "info" }) {
+export default function Toast({message, type = IToastType.INFO }) {
 
   useEffect(() => {
     if (message) {
