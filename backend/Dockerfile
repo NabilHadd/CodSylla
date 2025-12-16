@@ -41,7 +41,7 @@ RUN npm run build
 # -----------------------
 # Stage 2: Runtime con Playwright
 # -----------------------
-FROM mcr.microsoft.com/playwright:v1.57.0-focal  
+FROM mcr.microsoft.com/playwright:v1.57.0
 
 WORKDIR /app
 
