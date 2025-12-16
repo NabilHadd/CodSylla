@@ -40,5 +40,5 @@ echo "DB lista, ejecutando migraciones y app..."
 
 # Ejecutar migraciones y luego la app
 npx prisma migrate deploy
-npx prisma db seed
+npx prisma generate
 exec "$@"
