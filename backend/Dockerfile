@@ -16,7 +16,6 @@
 
 #CMD ["./wait-for-db.sh", "npm", "run", "start:dev"]
 
-
 # -----------------------
 # Stage 1: Build
 # -----------------------
@@ -53,7 +52,7 @@ RUN apk add --no-cache bash postgresql-client
 COPY --from=builder /app/package*.json ./
 RUN npm ci --only=production
 
-# Copiar código compilado
+# Copiar código compilado y Prisma
 COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/prisma ./prisma
 
@@ -64,5 +63,5 @@ RUN chmod +x wait-for-db.sh
 # Puerto que escucha Render
 EXPOSE 3001
 
-# Ejecutar backend (limitando memoria a 512 MB)
+# Ejecutar backend limitando memoria a 512 MB
 CMD ["./wait-for-db.sh", "node", "--max-old-space-size=512", "dist/main.js"]
