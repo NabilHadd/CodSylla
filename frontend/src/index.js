@@ -9,7 +9,6 @@ import Home from "./pages/Home";
 import AdminHome from "./pages/AdminHome";
 import MainForm from "./pages/MainForm";
 import Ranking from "./pages/Ranking";
-import SimulRamos from "./components/SimulRamos";
 import ProtectedRoute from "./components/ProtectedRoute";
 import ProtectedAdminRoute from "./components/ProtectedAdminRoute";
 

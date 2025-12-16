@@ -23,18 +23,14 @@ export default function MainForm() {
   const [disponibles, setDisponibles] = useState([]);
   const [type, setType] = useState("");
   const {getBaseUrl} = useApi();
-  const {getHeaderToken, getToken} = useAuth();
-
-  const baseUrl = getBaseUrl();
-  const headerToken = getHeaderToken()
-  const token = getToken()
+  const {getHeaderToken} = useAuth();
 
   useEffect(() => {
     const fetchData = async () => {
       try {
         const [resRamos, resDisponibles] = await Promise.all([
-          axios.get(`${baseUrl}/ramo/ramos-pendientes`, headerToken),
-          axios.get(`${baseUrl}/get-all/disponibles`, headerToken),
+          axios.get(`${getBaseUrl()}/ramo/ramos-pendientes`, getHeaderToken()),
+          axios.get(`${getBaseUrl()}/get-all/disponibles`, getHeaderToken()),
         ]);
 
         setRamos(resRamos.data || []);
@@ -47,7 +43,7 @@ export default function MainForm() {
     };
 
     fetchData();
-  }, [token]);
+  }, [getBaseUrl, getHeaderToken]);
 
 
   const generarPlanificacion = async () => {
@@ -60,9 +56,9 @@ export default function MainForm() {
       if (nombrePlan === "") throw new Error("Ingrese un nombre al plan");
 
       const { data } = await axios.post(
-        `${baseUrl}/planification/generar`,
+        `${getBaseUrl()}/planification/generar`,
         { nombre: nombrePlan, maxCredits, postponed, priority, reprobed},
-        headerToken
+        getHeaderToken()
       );
 
       if (!data.success) throw new Error(data.error);

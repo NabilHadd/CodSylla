@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import RamoForm from "./Form/RamoForm";
 import { Button } from "flowbite-react";
-import { IStateRamo, IColor, IToastType } from './index'
+import { IStateRamo, IColor} from './index'
 import { useAuth } from "../hooks/useAuth";
 import { useApi } from "../hooks/useApi";
 import axios from "axios";

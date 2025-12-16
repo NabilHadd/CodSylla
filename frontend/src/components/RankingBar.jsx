@@ -57,8 +57,16 @@ export default function RankingBar({
                     <HiX className="h-5 w-5" />
                   </Button>
 
-                  <h1 className="text-4xl font-bold text-center mb-6 text-blue-800">
-                    Ranking: {plan.nombre_plan}
+                  <h1 className="
+                    text-2xl
+                    sm:text-3xl
+                    lg:text-4xl
+                    font-bold
+                    text-center
+                    mb-4 sm:mb-6
+                    text-blue-800
+                  ">
+                    {plan.nombre_plan}
                   </h1>
 
                   <Plan planificacion={planificacion} semestreActual={semestre} />
@@ -71,9 +79,15 @@ export default function RankingBar({
 
             <div
               key={i}
-              className={`mb-4 rounded-xl shadow-md border ${getRankingColor(
-                plan.ranking
-              )} p-4 flex items-center justify-between transition`}
+              className={`
+                mb-4 rounded-xl shadow-md border
+                ${getRankingColor(plan.ranking)}
+                p-4
+                flex flex-col
+                gap-4
+                sm:flex-row sm:items-center sm:justify-between
+                transition
+              `}
             >
 
               <div className="flex items-center gap-4">
@@ -90,7 +104,7 @@ export default function RankingBar({
 
 
               {/* Ranking y botones */}
-              <div className="flex items-center gap-2">
+              <div className="flex flex-wrap gap-2 sm:flex-nowrap sm:items-center">
 
                 <Button
                   color="gray"

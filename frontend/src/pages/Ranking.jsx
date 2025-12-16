@@ -22,13 +22,11 @@ export default function Ranking() {
   const navigate = useNavigate();
   const {getBaseUrl} = useApi();
   const {getHeaderToken} = useAuth();
-  const baseUrl = getBaseUrl();
-  const headerToken = getHeaderToken();
 
   
   useEffect(() => {
 
-    axios.get(`${baseUrl}/planification/obtener-todo`, headerToken)
+    axios.get(`${getBaseUrl()}/planification/obtener-todo`, getHeaderToken())
     .then(res => {
       const ordenados = [...res.data].sort((a, b) => a.ranking - b.ranking);
       setPlanes(ordenados);
@@ -39,7 +37,7 @@ export default function Ranking() {
       setLoading(false);
     })
 
-    axios.get(`${baseUrl}/get-all/semestre`, headerToken)
+    axios.get(`${getBaseUrl()}/get-all/semestre`, getHeaderToken())
     .then(res => {
         setSemestre(res.data);
         setLoading(false);
@@ -49,15 +47,15 @@ export default function Ranking() {
         setLoading(false);
     })
 
-  }, [planes]);
+  }, [planes, getBaseUrl, getHeaderToken]);
 
 
 
   const handleDelete = async (plan) => {
     axios.delete(
-      `${baseUrl}/planification/eliminar-plan`,
+      `${getBaseUrl()}/planification/eliminar-plan`,
       { data: plan,
-        ...headerToken
+        ...getHeaderToken()
     })
     .then(res => {
       setMensaje("PLan eliminado correctamente");
@@ -80,9 +78,9 @@ export default function Ranking() {
   const handleSave = async () => {
 
     axios.post(
-      `${baseUrl}/planification/actualizar-ranking`,
+      `${getBaseUrl()}/planification/actualizar-ranking`,
       {planes},
-      headerToken
+      getHeaderToken()
     )
       .then(res => {
         setMensaje("Rankings actualizados correctamente");
@@ -104,7 +102,7 @@ export default function Ranking() {
   const getPLan = async (rank) => {
 
     axios.get(
-      `${baseUrl}/planification/obtener/${rank}`, headerToken)
+      `${getBaseUrl()}/planification/obtener/${rank}`, getHeaderToken())
     .then(res => {
       setPlanificacion(res.data);
     })
@@ -151,8 +149,8 @@ export default function Ranking() {
   const handleDownload = async (rank) => {
 
     const response = await axios.get(
-      `${baseUrl}/planification/obtener/${rank}`,
-      headerToken
+      `${getBaseUrl()}/planification/obtener/${rank}`,
+      getHeaderToken()
     )
 
     const plan = response.data
@@ -208,10 +206,10 @@ export default function Ranking() {
 
 
     const res = await axios.post(
-      `${baseUrl}/print/pdf`,
+      `${getBaseUrl()}/print/pdf`,
       { html },
       {
-        ...headerToken,
+        ...getHeaderToken(),
         responseType: 'blob',
       }
     );
