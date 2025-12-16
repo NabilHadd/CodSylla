@@ -64,4 +64,4 @@ RUN chmod +x wait-for-db.sh
 EXPOSE 3001
 
 # Ejecutar backend limitando memoria a 512 MB
-CMD ["./wait-for-db.sh", "node", "--max-old-space-size=512", "dist/main.js"]
+CMD ["./wait-for-db.sh", "node", "--max-old-space-size=512", "dist/src/main.js"]
