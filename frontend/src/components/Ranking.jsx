@@ -148,78 +148,82 @@ export default function Ranking() {
 
 
 
-const generarHtml = async (plan) => {
-  const body = renderToString(
-  <PrintedPlan planificacion={plan} />
-);
+  const handleDownload = async (rank) => {
 
-const html = `
-<!DOCTYPE html>
-<html>
-<head>
-  <meta charset="utf-8" />
-  <script src="https://cdn.tailwindcss.com"></script>
+    const response = await axios.get(
+      `${baseUrl}/planification/obtener/${rank}`,
+      headerToken
+    )
 
-  <!-- Opcional: config Tailwind -->
-  <script>
-    tailwind.config = {
-      theme: {
-        extend: {
-          colors: {
-            primary: '#2563eb',
+    const plan = response.data
+    const body = renderToString(
+    <PrintedPlan planificacion={plan} />
+    );
+
+    const html = `
+    <!DOCTYPE html>
+    <html lang="es">
+    <head>
+      <meta charset="utf-8" />
+
+      <!-- Tailwind CDN -->
+      <script src="https://cdn.tailwindcss.com"></script>
+
+      <script>
+        tailwind.config = {
+          theme: {
+            extend: {
+              colors: {
+                primary: '#2563eb',
+              },
+            },
           },
-        },
-      },
-    }
-  </script>
+        }
+      </script>
 
-<style>
-  @page {
-    size: A4 landscape;
-    margin: 1cm;
-  }
+      <style>
+        @page {
+          size: A4 landscape;
+          margin: 0;
+        }
 
-  .break {
-    page-break-before: always;
-  }
+        html, body {
+          margin: 0;
+          padding: 0;
+          width: 297mm;
+          height: 210mm;
+          background: white;
+        }
+        * {
+          box-sizing: border-box;
+        }
+      </style>
+    </head>
 
-  html, body {
-    width: 297mm;
-    height: 210mm;
-  }
-  
-  .print-scale {
-    transform: scale(0.85);
-    transform-origin: top left;
-    width: 117%;
-  }
-</style>
-</head>
-<body class="bg-white">
-  <div class="print-scale">
-    ${body}
-  </div>
-</body>
-</html>
-`;
+    <body>
+      ${body}
+    </body>
+    </html>
+    `;
 
-  const res = await axios.post(
-    `${baseUrl}/print/pdf`,
-    { html },
-    {
-      ...headerToken,
-      responseType: 'blob', // 👈 IMPORTANTE
-    }
-  );
 
-  const blob = new Blob([res.data], { type: 'application/pdf' });
-  const url = window.URL.createObjectURL(blob);
+    const res = await axios.post(
+      `${baseUrl}/print/pdf`,
+      { html },
+      {
+        ...headerToken,
+        responseType: 'blob', // 👈 IMPORTANTE
+      }
+    );
 
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = 'plan.pdf';
-  a.click();
-};
+    const blob = new Blob([res.data], { type: 'application/pdf' });
+    const url = window.URL.createObjectURL(blob);
+
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'plan.pdf';
+    a.click();
+  };
 
 
 
@@ -261,9 +265,8 @@ const html = `
             handleCerrar={handleCerrar} 
             planSelect={planSelect}
             handleDelete={handleDelete}
+            handleDownload={handleDownload}
           />
-
-          <Button color='green' onClick={() => generarHtml(planificacion)}>Descargar Posición 1</Button>
 
         {mensaje && (
           <Toast key={toastKey} message={mensaje} type={type}/>

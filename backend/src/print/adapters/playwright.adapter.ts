@@ -39,14 +39,19 @@ export class PlaywrightAdapter
       A4_HEIGHT / height
     );
 
-    // 4️⃣ Generar PDF forzado a 1 página
     const pdf = await page.pdf({
       format: 'A4',
       landscape: true,
       printBackground: true,
-      scale,          // 👈 AQUÍ está la magia
-      pageRanges: '1' // 👈 fuerza una sola página
+      scale: 0.78,
+      margin: {
+        top: '0cm',
+        bottom: '0cm',
+        left: '0cm',
+        right: '0cm',
+      },
     });
+
 
     await page.close();
     return pdf;

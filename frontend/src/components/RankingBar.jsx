@@ -12,23 +12,22 @@ export default function RankingBar({
   semestre,
   handleCerrar,
   planSelect,
-  handleDelete
+  handleDelete,
+  handleDownload
 }) {
 
-const getRankingColor = (rank) => {
-  switch (Number(rank)) {
-    case 1:
-      return "bg-amber-200/40 hover:bg-amber-300/50 border-amber-500 text-amber-700";
-    case 2:
-      return "bg-orange-200/40 hover:bg-orange-300/50 border-orange-500 text-orange-700";
-    case 3:
-      return "bg-emerald-200/40 hover:bg-emerald-300/50 border-emerald-500 text-emerald-700";
-    default:
-      return "bg-blue-200/40 hover:bg-blue-300/50 border-blue-500 text-blue-700";
-  }
-};
-
-
+  const getRankingColor = (rank) => {
+    switch (Number(rank)) {
+      case 1:
+        return "bg-amber-100 border-amber-300 text-amber-800";
+      case 2:
+        return "bg-orange-100 border-orange-300 text-orange-800";
+      case 3:
+        return "bg-emerald-100 border-emerald-300 text-emerald-800";
+      default:
+        return "bg-blue-100 border-blue-300 text-blue-800";
+    }
+  };
 
   return (
     <div>
@@ -39,31 +38,30 @@ const getRankingColor = (rank) => {
           // Vista expandida
           if (isSelected) {
             return (
-            <div
-            className={`rounded-xl shadow-md border ${getRankingColor(
-                plan.ranking
-              )} p-4 flex items-center justify-between transition`}
-            >
-              <div key={i} className="flex-1 p-6 relative">
-                <Button
-                  color="failure"
-                  pill
-                  size="xs"
-                  className="absolute top-4 right-4"
-                  onClick={handleCerrar}
-                  title="Cerrar"
-                >
-                  <HiX className="h-5 w-5" />
-                </Button>
+              <div
+                className={`rounded-xl shadow-md border ${getRankingColor(
+                  plan.ranking
+                )} p-4 flex items-center justify-between transition`}
+              >
+                <div key={i} className="flex-1 p-6 relative">
+                  <Button
+                    color="failure"
+                    pill
+                    size="xs"
+                    className="absolute top-4 right-4"
+                    onClick={handleCerrar}
+                    title="Cerrar"
+                  >
+                    <HiX className="h-5 w-5" />
+                  </Button>
 
-                <h1 className="text-4xl font-bold text-center mb-6 text-blue-800">
-                  Ranking: {plan.nombre_plan}
-                </h1>
+                  <h1 className="text-4xl font-bold text-center mb-6 text-blue-800">
+                    Ranking: {plan.nombre_plan}
+                  </h1>
 
-                <Plan planificacion={planificacion} semestreActual={semestre} />
+                  <Plan planificacion={planificacion} semestreActual={semestre} />
+                </div>
               </div>
-            </div>
-
             );
           }
 
@@ -75,17 +73,27 @@ const getRankingColor = (rank) => {
                 plan.ranking
               )} p-4 flex items-center justify-between transition`}
             >
-              <div className="font-semibold text-lg text-slate-800">
-                {plan.nombre_plan ?? "Plan sin nombre"}
+
+              <div className="flex items-center gap-4">
+                {/* Número de ranking */}
+                <div className="w-10 h-10 flex items-center justify-center rounded-full bg-white border-2 border-gray-400 text-gray-800 font-bold text-base">
+                  {plan.ranking}
+                </div>
+
+                {/* Nombre del plan */}
+                <div className="font-semibold text-lg text-slate-800">
+                  {plan.nombre_plan ?? "Plan sin nombre"}
+                </div>
               </div>
 
-              <div className="flex items-center gap-2">
-                <span className="font-bold text-gray-700">{plan.ranking}</span>
 
+              {/* Ranking y botones */}
+              <div className="flex items-center gap-2">
+                {/* Botones circulares modernos */}
                 <Button
-                  color="light"
-                  size="xs"
-                  pill
+                  color="gray"
+                  size="sm"
+                  className="p-2 rounded-full hover:bg-gray-200 shadow transition"
                   onClick={() => moveUp(i)}
                   title="Subir"
                 >
@@ -93,9 +101,9 @@ const getRankingColor = (rank) => {
                 </Button>
 
                 <Button
-                  color="light"
-                  size="xs"
-                  pill
+                  color="gray"
+                  size="sm"
+                  className="p-2 rounded-full hover:bg-gray-200 shadow transition"
                   onClick={() => moveDown(i)}
                   title="Bajar"
                 >
@@ -103,23 +111,31 @@ const getRankingColor = (rank) => {
                 </Button>
 
                 <Button
-                  color="light"
-                  size="xs"
-                  pill
+                  size="sm"
+                  className="p-2 border-2 border-blue-400 bg-blue-300 hover:bg-blue-400 shadow transition text-blue-800"
                   onClick={() => mostrarPlan(plan)}
                 >
                   Mostrar
                 </Button>
+
                 {plan.ranking > 1 && (
                   <Button
-                    color="light"
-                    size="xs"
-                    pill
+                    color=''
+                    size="sm"
+                    className="p-2 border-2 border-red-400 bg-red-300 hover:bg-red-200 shadow transition text-red-800"
                     onClick={() => handleDelete(plan)}
                   >
                     Eliminar
                   </Button>
                 )}
+
+                <Button
+                  size="sm"
+                  className="p-2 border-2 border-green-400 bg-green-300 hover:bg-green-400 shadow transition text-green-800"
+                  onClick={() => handleDownload(plan.ranking)}
+                >
+                  Descargar
+                </Button>
               </div>
             </div>
           );
