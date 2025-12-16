@@ -18,15 +18,15 @@
 
 
 
-
-FROM node:18-alpine
+# Usa Node 20 para evitar warnings de Prisma y dependencias
+FROM node:20-alpine
 
 WORKDIR /app
 
-# Instala PostgreSQL client (opcional, útil si usas Prisma)
+# Instala PostgreSQL client y bash (necesario para wait-for-db.sh)
 RUN apk add --no-cache postgresql-client bash
 
-# Copiar y instalar dependencias
+# Copiar package.json e instalar dependencias
 COPY package*.json ./
 RUN npm ci
 
@@ -37,12 +37,12 @@ RUN npx prisma generate
 # Copiar todo el código
 COPY . .
 
-# Migraciones + Seed **al construir**
-RUN npx prisma migrate deploy
-RUN npx prisma db seed
+# Copiar y dar permisos al wait-for-db
+COPY wait-for-db.sh ./wait-for-db.sh
+RUN chmod +x wait-for-db.sh
 
-# Puerto que escucha Render
+# Puerto que escucha la app en Render
 EXPOSE 3001
 
-# Ejecutar la app
-CMD ["npm", "start"]
+# Ejecutar la app usando wait-for-db.sh
+CMD ["./wait-for-db.sh", "npm", "run", "start:dev"]
