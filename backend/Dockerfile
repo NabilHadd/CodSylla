@@ -44,5 +44,5 @@ RUN chmod +x wait-for-db.sh
 # Puerto que escucha la app en Render
 EXPOSE 3001
 
-# Ejecutar la app usando wait-for-db.sh
-CMD ["./wait-for-db.sh", "npm", "run", "start:dev"]
+# Ejecutar migraciones + seed y luego iniciar la app en modo producción
+CMD ["./wait-for-db.sh", "sh", "-c", "npx prisma migrate deploy && npx prisma db seed && npm run build && npm run start:prod"]
