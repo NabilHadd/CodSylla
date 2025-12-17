@@ -39,6 +39,7 @@ done
 echo "DB lista, ejecutando migraciones y app..."
 
 # Ejecutar migraciones y luego la app
+npx prisma migrate resolve --applied 20251119034542_init || true
 npx prisma migrate deploy
 npx prisma generate
 exec "$@"
