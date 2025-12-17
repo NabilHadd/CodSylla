@@ -61,7 +61,7 @@ export default function SimulRamos({ ramos, onClose, handleToast}) {
 
     return (
     <>
-        <h2 className="text-xl font-bold mb-4">Simulación de Ramos</h2>
+        <h2 className="text-xl font-bold mb-4">Simulación de Ramos Actuales</h2>
 
         {lista.map((r) => (
         <div key={r.codigo} className="p-4">
@@ -96,7 +96,7 @@ export default function SimulRamos({ ramos, onClose, handleToast}) {
             hover:bg-emerald-200
             transition-all 
             shadow-sm
-            "
+            "         
         >
             Guardar
         </Button>

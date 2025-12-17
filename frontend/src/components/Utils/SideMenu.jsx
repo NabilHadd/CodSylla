@@ -1,5 +1,5 @@
 import React from "react";
-import { Button } from "flowbite-react"; 
+import { Button  } from "flowbite-react"; 
 import { useAuth } from "../../hooks/useAuth";
 
 export default function SideMenu({ setMenuOpen, children}) {
@@ -29,6 +29,8 @@ export default function SideMenu({ setMenuOpen, children}) {
         >
           Cerrar Sesión
         </Button>
+
+
       </aside>
     </div>
   );
