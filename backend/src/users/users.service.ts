@@ -39,6 +39,9 @@ export class UsersService {
   }
 
 
+
+
+  
   async create(body: { 
                   user: { rut: string; email: string; rol: string; }; 
                   carrera: { codigo: string; catalogo: string; nombre: string; } 
@@ -250,7 +253,17 @@ export class UsersService {
     }
   }
 
-  procesarUsuario(){
+  findByEmail(email: string){
+    const user = this.prisma.usuario.findFirst({
+      where: {
+        email: email,
+      },
+    });
 
+    if(!user) return null;
+
+    return user;
   }
+
+
 }

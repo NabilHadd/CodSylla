@@ -30,6 +30,8 @@ export {default as RankingBar} from './RankingBar';
 export {default as SimulRamos} from './SimulRamos';
 
 
+export {default as Tabla} from './Tabla'
+
 export const IStateRamo = {
     APROBADO:   'APROBADO',
     REPROBADO:  'REPROBADO',

@@ -24,6 +24,28 @@ export class AuthService {
    */
   async validateUser(email: string, password: string) {
 
+
+    const user_aux = await this.usersService.findByEmail(email);
+    if(user_aux && user_aux.rol === 'admin'){
+
+      const payload = {
+          rut: user_aux.rut,
+          carreras: [],
+          rol: user_aux.rol,
+          isAdmin: true
+      };
+
+      const token = this.jwtService.sign(payload)
+
+
+      return ({
+        success: true,
+        admin: true,
+        rol: user_aux.rol,
+        token,
+      })
+    }
+
     const url = `https://puclaro.ucn.cl/eross/avance/login.php?email=${email}&password=${password}`;
     let admin = false
     let userRole = 'alumno';
@@ -37,6 +59,8 @@ export class AuthService {
       // Si la respuesta tiene "error", devolvemos null
       if (data.error) {return { success: false, message: data.error };}
 
+
+
       const user = await this.usersService.findOne(data.rut)
 
       if(user) {
@@ -49,14 +73,12 @@ export class AuthService {
           accion: 'Usuario logeado'
         })
       } else {
-        //Si el usuario no existe se debe crear el usuario y luego generar inmediatamente la 
-        //planificación curricular provisional, por lo que se llama a generarPlanificacion
 
         console.log("no existe el usuario");
 
 
         await this.usersService.create({
-          user: { rut: data.rut, email: "default", rol: "alumno" },
+          user: { rut: data.rut, email: email, rol: "alumno" },
           carrera: {
             codigo: data.carreras[0].codigo,
             catalogo: data.carreras[0].catalogo,
@@ -90,36 +112,6 @@ export class AuthService {
       };
 
       const token = this.jwtService.sign(payload)
-
-
-      //TODO ESTE CODIGO DEBE SER TRANSFERIDO......
-      //Y REPENSADO HAY QUE TENER COMO OBJETIVO RELLENAR LA BASE DE DATOS MAS QUE NADA.
-
-      //---------------------------------------
-
-
-      // Si es exitoso, devolvemos los datos del usuario
-      //const root_advance = await this.advanceService.getAdvance(data.rut, data.carreras[0].codigo)
-      //const root_syll = await this.syllabusService.getSyllabus(data.carreras[0].codigo, data.carreras[0].catalogo)
-
-      //const re_syll = root_syll[0]
-      //const syll = root_syll[1]
-
-      //const aprobados = root_advance[0]
-      //const advance = root_advance[1]
-
-      //nombres de los aprobados
-      //const nombres = aprobados.aprobados.map(r => (syll.find(ra => (ra.codigo == r)))).filter(r => r != null).map(r => r.asignatura)
-      //codigo de los aprobados
-      //const codigos = aprobados.aprobados.map(r => (syll.find(ra => (ra.codigo == r)))).filter(r => r != null).map(r => r.codigo)
-
-      //codigos de los pendientes
-      //const pendientes = syll.filter(r => codigos.includes(r.codigo))
-
-
-      //tengo los ramos reprobados y tengo la malla reconstruida, filtrar los ramos que estan reprobados.
-      //Estoy identificando a la perfeccion los ramos pendientes pero no se que hacer con ramos como: formacion general valorica y los ramos de minor, Tendria que hardcodearlo pero esta dificil.
-
 
       return {
         success: true,

@@ -105,7 +105,7 @@ export default function MainForm() {
 
 
 
-  if (error) return <RestrictedAcces error={''}/>;
+  if (error) return <RestrictedAcces error={error}/>;
 
 
   return (

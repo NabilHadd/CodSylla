@@ -67,7 +67,7 @@ export class AdminService {
   }
 
 
-  async getAuditRamos(){
+  async getAuditRamos(semestre: number){
     const planificaciones_ramos = await this.prisma.planificacion.findMany({
       where:{
         ranking: 1
@@ -77,7 +77,7 @@ export class AdminService {
       },
     });
     
-    const semestre = this.getAll.siguienteSemestre(this.getAll.getSemestreActual());
+    //const semestre = this.getAll.siguienteSemestre(this.getAll.getSemestreActual());
 
     const ramosNextSem = planificaciones_ramos
       .map(r => r.ramos)

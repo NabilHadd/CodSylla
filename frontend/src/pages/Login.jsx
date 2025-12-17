@@ -107,7 +107,20 @@ export default function Login() {
 
           <Button
             type="submit"
-            className="w-full py-3 bg-gradient-to-r from-blue-100 to-blue-200 border-2 border-blue-700 text-blue-700 font-bold rounded-xl hover:from-blue-200 hover:to-blue-300 hover:shadow-lg transition-all duration-300"
+            className="
+            w-full
+            py-3
+            bg-gradient-to-r
+            from-blue-100
+            to-blue-200 border-2
+            border-blue-700
+            text-blue-700 font-bold
+            rounded-xl
+            hover:from-blue-200
+            hover:to-blue-300
+            hover:shadow-lg
+            transition-all
+            duration-300"
           >
             Iniciar sesión
           </Button>

@@ -1,4 +1,4 @@
-import { Controller, Get, UseGuards, Req, ForbiddenException } from '@nestjs/common';
+import { Controller, Get, UseGuards, Req, ForbiddenException, Post, Body} from '@nestjs/common';
 import { AdminService } from './admin.service';
 import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
 
@@ -26,11 +26,10 @@ export class AdminController {
     return this.adminService.getRamos();
   }
 
-  //@UseGuards(JwtAuthGuard)
-  @Get('audit-ramos')
-  //findAuditRamos(@Req() req) {
-  findAuditRamos() {
-    //this.ensureAdmin(req.user);
-    return this.adminService.getAuditRamos();
+  @Post('audit-ramos')
+  findAuditRamos(@Body('semestre') semestre: string) {
+    const sem = Number(semestre);
+    console.log(semestre)
+    return this.adminService.getAuditRamos(sem);
   }
 }
