@@ -25,17 +25,14 @@ export class UsersService {
 
 
   async findOne(rut: string) {
-    try{
       const usuario =  await this.prisma.usuario.findUnique({
         where:{
           rut: rut,
         },
       })
 
+      if(!usuario) throw new Error('Usuario no encotrado');
       return usuario
-    }catch (error){
-      throw new Error(error.message);
-    }
   }
 
 
@@ -214,7 +211,7 @@ export class UsersService {
     
     // Insertar alumno_carrera
     const alumnoCarrera = await this.prisma.alumno_carrera.create({ data: alumnoCarreraData });
-
+    
     return { user: userData, carrera: carreraData, alumno_carrera: alumnoCarrera };
   }
 

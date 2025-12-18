@@ -1,7 +1,6 @@
 import { Controller, Get, Req, UseGuards, Query, Post, Body } from '@nestjs/common';
 import { GetAllService } from './get-all.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
-import { RamoRepository } from 'src/persistence/ramo.repository';
 import { HistorialRepository } from 'src/persistence/historial.repository';
 import { RamoService } from 'src/ramo/ramo.service';
 
@@ -13,21 +12,12 @@ export class GetAllController {
     private readonly histoRepo: HistorialRepository
   ) {}
 
-
-  //@UseGuards(JwtAuthGuard)
-  //@Get('aprobados')
-  //async obtenerAprobados(@Req() req) {
-  //  const rut = req.user.rut;
-  //
-  //  return this.getAllService.getAprobados(rut);
-  //}
-
   
   @UseGuards(JwtAuthGuard)
   @Get('disponibles')
   async obtenerPendientes(@Req() req) {
     const rut = req.user.rut;
-    const carrera = req.user.carreras[0]; // primera carrera del array
+    const carrera = req.user.carreras[0];
 
     const body = {
       rut: rut,

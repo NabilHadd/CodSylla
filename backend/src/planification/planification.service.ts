@@ -225,7 +225,6 @@ export class PlanificationService {
             }
           }
 
-          // ✅ Si no se pudo agregar ninguno (por límite bajo), agregar el más bajo nivel igual
           if (semestreRamos.length === 0 && ordenados.length > 0) {
             const ramoGrande = ordenados[0];
             semestreRamos.push({ codigo: ramoGrande.codigo, estado: "pendiente", creditos: ramoGrande.creditos });
@@ -279,9 +278,6 @@ export class PlanificationService {
 
 
 
-      //el home del alumno por defecto siempre va a consultar el ranking n°1
-      //el cual siempre estara lleno debido a que apenas se ingresa a la pagina se agrega la provisional
-      //al ranking n°1
       async getPlanificacion(body, ranking){
 
         const {rut, carrera} = body

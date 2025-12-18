@@ -1,11 +1,10 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { INestApplication } from '@nestjs/common';
 import request from 'supertest';
-import { App } from 'supertest/types';
 import { AppModule } from './../src/app.module';
 
-describe('AppController (e2e)', () => {
-  let app: INestApplication<App>;
+describe('PrintController (e2e) - Punto A', () => {
+  let app: INestApplication;
 
   beforeEach(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
@@ -20,10 +19,15 @@ describe('AppController (e2e)', () => {
     await app.close();
   });
 
-  it('/ (GET)', () => {
-    return request(app.getHttpServer())
-      .get('/')
-      .expect(200)
-      .expect('Hello World!');
+  describe('POST /print/pdf', () => {
+    it('Debe existir el endpoint POST /print/pdf', async () => {
+      const res = await request(app.getHttpServer())
+        .post('/print/pdf')
+        .send({ html: '<h1>Prueba PDF</h1>' })
+        .expect('Content-Type', /pdf/)
+        .expect(201);
+
+      expect(res.body).toBeDefined();
+    });
   });
 });

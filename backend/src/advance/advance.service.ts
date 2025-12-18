@@ -2,13 +2,11 @@ import { Injectable } from '@nestjs/common';
 import { HttpService } from '@nestjs/axios';
 import { AuthService } from '../auth/auth.service';
 import { firstValueFrom } from 'rxjs';
-import { ProcesadorService } from './advance.procesador.service';
 
 
 @Injectable()
 export class AdvanceService {
-        constructor(private readonly httpService: HttpService,
-        private readonly procesadorService: ProcesadorService){}
+        constructor(private readonly httpService: HttpService){}
     
         async getAdvance(rut: string, codcarrera: string) {
         const url = `https://puclaro.ucn.cl/eross/avance/avance.php?rut=${rut}&codcarrera=${codcarrera}`;
@@ -22,12 +20,12 @@ export class AdvanceService {
     
           const data = response.data;
     
-          // Si la respuesta tiene "error", devolvemos null
+          // Si la respuesta tiene "error"
           if (data.error) {
             return { success: false, message: data.error };
           }
     
-          const aprobados = this.procesadorService.ramosPendientes(data)
+          const aprobados = data.count()
 
           const data_no_excluded = data.filter(r => r.excluded === false)
 

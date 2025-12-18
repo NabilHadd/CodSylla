@@ -3,14 +3,12 @@ import { HttpService } from '@nestjs/axios';
 import { AuthService } from '../auth/auth.service';
 import { firstValueFrom } from 'rxjs';
 import { ProcesadorService } from './syllabus.procesador.service';
-import { ProcesadorService as AdProcesadorService} from '../advance/advance.procesador.service';
 
 
 @Injectable()
 export class SyllabusService {
     constructor(private readonly httpService: HttpService, 
       private readonly procesadorService: ProcesadorService,
-      private readonly adProcesadorService: AdProcesadorService
     ) {}
 
     async getSyllabus(syllabusCode: string, catalogCode: string) {

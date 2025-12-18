@@ -1,4 +1,3 @@
-// src/print/print.controller.ts
 import { Controller, Post, Body, Res } from '@nestjs/common';
 import type { Response } from 'express';
 import { PrintService } from './print.service';

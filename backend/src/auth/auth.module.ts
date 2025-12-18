@@ -2,7 +2,6 @@ import { Module} from '@nestjs/common';
 import { HttpModule } from '@nestjs/axios';
 import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
-import { ProcesadorModule } from './auth.procesador.module';
 import { SyllabusModule } from '../syllabus/syllabus.module';
 import { AdvanceModule } from '../advance/advance.module';
 import { UsersModule } from 'src/users/users.module';
@@ -15,7 +14,6 @@ import { PassportModule } from '@nestjs/passport';
 @Module({
   imports: [
     HttpModule,
-    ProcesadorModule,
     SyllabusModule, 
     AdvanceModule,
     UsersModule,
@@ -23,7 +21,7 @@ import { PassportModule } from '@nestjs/passport';
     PlanificationModule,
     PassportModule,
     JwtModule.register({
-      secret: process.env.JWT_SECRET, // aquí pones tu clave secreta
+      secret: process.env.JWT_SECRET,
       signOptions: { expiresIn: '1d' },
     }),
   ],

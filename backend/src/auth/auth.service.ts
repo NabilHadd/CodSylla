@@ -1,8 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { HttpService } from '@nestjs/axios';
 import { firstValueFrom } from 'rxjs';
-import { SyllabusService } from 'src/syllabus/syllabus.service';
-import { AdvanceService } from 'src/advance/advance.service';
 import { UsersService } from 'src/users/users.service';
 import { AdminService } from 'src/admin/admin.service';
 import { JwtService } from '@nestjs/jwt';
@@ -11,17 +9,12 @@ import { PlanificationService } from 'src/planification/planification.service';
 @Injectable()
 export class AuthService {
   constructor(private readonly httpService: HttpService,
-    private readonly  syllabusService: SyllabusService,
-    private readonly advanceService: AdvanceService,
     private readonly usersService: UsersService,
     private readonly adminService: AdminService,
     private readonly jwtService: JwtService,
     private readonly planService: PlanificationService
   ) {}
 
-  /**
-   * Valida las credenciales contra el endpoint externo
-   */
   async validateUser(email: string, password: string) {
 
 
@@ -101,7 +94,6 @@ export class AuthService {
             nombre: data.carreras[0].nombre
           },
         });
-        //luego hay que pensar la logica para el tema de los ranking
       }
 
       const payload = {
@@ -117,13 +109,7 @@ export class AuthService {
         success: true,
         admin: admin,
         rol: userRole,
-        token,
-        //rut: data.rut,
-        //carreras: data.carreras,
-        //avance: advance,
-        //aprobados: aprobados,
-        //syllabus: syll,
-        //pendientes: pendientes,
+        token
       };
 
     } catch (error) {
